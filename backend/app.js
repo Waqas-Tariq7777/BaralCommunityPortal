@@ -1,0 +1,46 @@
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser"
+import adminRoutes from './routes/admin.routes.js'
+import authRoutes from './routes/auth.routes.js'
+import userRoutes from './routes/user.routes.js'
+const app = express();
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
+
+app.use(
+    cors({
+        origin: function (origin, callback) {
+            if (!origin || allowedOrigins.includes(origin)) {
+                // allow requests with no origin (like mobile apps, curl)
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+    })
+);
+
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(cookieParser());
+app.set('json spaces', 2);
+
+app.use('/api/admin', adminRoutes)
+app.use('/api/auth', authRoutes)
+app.use('/api/user', userRoutes)
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack); // optional: logs error in backend
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Something went wrong",
+    errors: err.errors || [],
+  });
+});
+
+
+export { app }
