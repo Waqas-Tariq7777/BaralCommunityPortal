@@ -1,6 +1,14 @@
 import React from "react";
+import LoadingSpinner from "../LoadingSpinner.jsx"; 
 
-const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title = "Are you sure?", message = "This action cannot be undone." }) => {
+const ConfirmDeleteModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  loading = false, // new prop
+  title = "Are you sure?",
+  message = "This action cannot be undone."
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -12,13 +20,16 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title = "Are you sure?
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
+            disabled={loading} // disable cancel while loading
             className="cursor-pointer px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition">
             Cancel
           </button>
+
           <button
             onClick={onConfirm}
-            className="cursor-pointer px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition">
-            Delete
+            disabled={loading} // prevent multiple clicks
+            className="cursor-pointer flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition">
+            {loading ? <LoadingSpinner size={18} color="#fff" /> : "Delete"}
           </button>
         </div>
       </div>

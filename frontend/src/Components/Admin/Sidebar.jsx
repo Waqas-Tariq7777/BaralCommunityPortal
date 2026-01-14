@@ -49,9 +49,8 @@ export default function Sidebar({ open, setOpen }) {
         {
             name: "Complaints",
             icon: AiOutlineFileText,
-            base: "/admin/complaints",
             sub: [
-                { name: "pending", icon: AiOutlineFileText },
+                { name: "All Complaints", path: "/admin/viewAllComplaints", icon: AiOutlineFileText },
                 { name: "progress", icon: AiOutlineCheckCircle },
                 { name: "resolved", icon: AiOutlineCheckCircle }
             ]

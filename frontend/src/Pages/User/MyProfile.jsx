@@ -45,43 +45,15 @@ export default function UserProfile() {
     return <div className="text-gray-500 dark:text-gray-400 text-center mt-10">No user logged in</div>;
   }
 
-  //  DUMMY ANNOUNCEMENTS 
-  const announcements = [
-    { id: 1, title: "Community Meeting at 5PM", date: "2026-01-10" },
-    { id: 2, title: "Water Supply Maintenance Tomorrow", date: "2026-01-08" },
-  ];
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 p-6">
-
-      {/* ANNOUNCEMENTS */}
-      <div className="bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] rounded-lg shadow-md p-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FiBell className="dark:text-[#748dff]" /> Latest Announcements
-          </h3>
-          <button className="cursor-pointer bg-[#748dff] hover:bg-indigo-500 text-white px-5 py-2 rounded-lg shadow-md transition-all hover:scale-105">View All</button>
-        </div>
-
-        {announcements.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-6">No announcements available</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {announcements.map((a) => (
-              <div key={a.id} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all hover:scale-[1.02]">
-                <p className="text-gray-700 dark:text-gray-200 font-medium">{a.title}</p>
-                <p className="text-sm text-gray-500 dark:text-[#748dff] mt-1">{new Date(a.date).toLocaleDateString()}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">My Profile</h1>
 
       {/* USER PROFILE */}
       <div className="bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] rounded-lg shadow-md p-6 space-y-6">
 
         {/* PROFILE HEADER */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:items-center sm:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
             {uploading ? (
               <div className="w-full h-full flex items-center justify-center rounded-full border-2 border-blue-500 overflow-hidden">

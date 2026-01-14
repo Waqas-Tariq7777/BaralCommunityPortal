@@ -1,100 +1,99 @@
 import React from "react";
-import {
-  AiOutlineMail,
-  AiOutlinePhone,
-  AiOutlineHome,
-  AiOutlineCalendar,
-  AiOutlineIdcard,
-} from "react-icons/ai";
+import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
+import { FiX, FiMail, FiPhone, FiHome, FiCalendar, FiUser } from "react-icons/fi";
 import moment from "moment";
 
 const ViewUserModal = ({ isOpen, user, onClose }) => {
   if (!isOpen || !user) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-lg rounded-2xl shadow-xl p-6 relative">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      
+      {/* BACKDROP */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      ></div>
 
-        {/* Close Button */}
+      {/* MODAL CONTENT WITH FRAMER MOTION */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.25 }}
+        className="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-[480px] p-7"
+      >
+        {/* CLOSE ICON */}
         <button
           onClick={onClose}
-          className="cursor-pointer absolute top-3 right-3 text-gray-500 hover:text-red-500 text-xl"
+          className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition"
         >
-          ✕
+          <FiX size={20} />
         </button>
 
-        {/* Profile Section */}
+        {/* HEADING */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-[#748dff] flex items-center justify-center text-white shadow-lg">
+            <FiUser />
+          </div>
+          <h2 className="text-2xl font-bold text-black dark:text-white">User Details</h2>
+        </div>
+
+        {/* PROFILE SECTION */}
         <div className="flex flex-col items-center text-center mb-6">
           <img
             src={user.profilePicture?.url || "/default-avatar.png"}
             alt={user.userName}
-            className="w-24 h-24 rounded-full object-cover border-4 border-indigo-400"
+            className="w-24 h-24 rounded-full object-cover border-2 border-[#748dff]"
           />
-          <h2 className="mt-3 text-xl font-bold text-gray-900 dark:text-white">
+          <h3 className="mt-3 text-xl font-semibold text-black dark:text-white">
             {user.userName}
-          </h2>
-          <p className="text-indigo-500 text-sm">
-            {user.designation || "N/A"}
-          </p>
+          </h3>
+          <p className="text-[#748dff] text-sm">{user.designation || "User"}</p>
         </div>
 
-        {/* Section Title */}
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4 text-center">
-          User Details
-        </h3>
-
-        {/* User Details Boxes */}
+        {/* USER DETAILS */}
         <div className="space-y-3 text-sm">
-
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <AiOutlineMail className="text-blue-500 text-xl" />
-            <span className="text-gray-800 dark:text-gray-200">
-              {user.email}
-            </span>
+            <FiMail className="text-[#748dff] text-xl" />
+            <span className="text-black dark:text-white">{user.email}</span>
           </div>
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <AiOutlinePhone className="text-green-500 text-xl" />
-            <span className="text-gray-800 dark:text-gray-200">
-              {user.mobileNumber}
-            </span>
+            <FiPhone className="text-green-500 text-xl" />
+            <span className="text-black dark:text-white">{user.mobileNumber || "N/A"}</span>
           </div>
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <AiOutlineHome className="text-purple-500 text-xl" />
-            <span className="text-gray-800 dark:text-gray-200">
-              House No: {user.houseNumber}
-            </span>
+            <FiHome className="text-purple-500 text-xl" />
+            <span className="text-black dark:text-white">House No: {user.houseNumber || "N/A"}</span>
           </div>
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <AiOutlineIdcard className="text-orange-500 text-xl" />
-            <span className="text-gray-800 dark:text-gray-200">
-              Designation: {user.designation || "User"}
-            </span>
+            <FiUser className="text-orange-500 text-xl" />
+            <span className="text-black dark:text-white">Designation: {user.designation || "User"}</span>
           </div>
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <AiOutlineCalendar className="text-pink-500 text-xl" />
-            <span className="text-gray-800 dark:text-gray-200">
+            <FiCalendar className="text-pink-500 text-xl" />
+            <span className="text-black dark:text-white">
               Joined: {moment(user.createdAt).format("MMMM D, YYYY")}
             </span>
           </div>
-
         </div>
 
-        {/* Footer */}
+        {/* FOOTER */}
         <div className="mt-6 text-center">
           <button
             onClick={onClose}
-            className="cursor-pointer bg-indigo-400 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg transition"
+            className="cursor-pointer bg-[#748dff] hover:bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md transition"
           >
             Close
           </button>
         </div>
-
-      </div>
-    </div>
+      </motion.div>
+    </div>,
+    document.body
   );
 };
 

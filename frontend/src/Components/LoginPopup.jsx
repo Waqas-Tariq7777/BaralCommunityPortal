@@ -67,7 +67,7 @@ export default function LoginPopup({ open, onClose }) {
           <div className="mb-4 relative">
             <label className="block text-sm font-medium mb-1 dark:text-white">Email</label>
             <span className="absolute left-3 top-10 text-[#748dff]"><AiOutlineMail size={20} /></span>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="w-full pl-10 p-3 border rounded-xl outline-none border-[#748dff] focus:ring-2 focus:ring-[#748dff] dark:text-white" />
+            <input type="email" name="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" className="w-full pl-10 p-3 border rounded-xl outline-none border-[#748dff] focus:ring-2 focus:ring-[#748dff] dark:text-white" />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 

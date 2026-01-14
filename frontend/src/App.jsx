@@ -15,6 +15,9 @@ import ViewUsers from './Pages/Admin/ViewUsers.jsx';
 import AddUsers from './Pages/Admin/AddUsers.jsx';
 import UserLayout from './Layouts/UserLayout.jsx';
 import MyProfile from './Pages/User/MyProfile.jsx';
+import SubmitComplaint from './Pages/User/SubmitComplaint.jsx';
+import ViewComplaintList from './Pages/User/ViewComplaintList.jsx';
+import ViewAllComplaints from './Pages/Admin/ViewAllComplaints.jsx';
 
 function App() {
 
@@ -45,6 +48,8 @@ function App() {
           <Route element={<UserLayout />}>
             <Route path='/user/dashboard' element={<UserDashboard />} />
             <Route path='/user/myProfile' element={<MyProfile />} />
+            <Route path='/user/submitComplaint' element={<SubmitComplaint />} />
+            <Route path='/user/viewComplaintList' element={<ViewComplaintList />} />
           </Route>
         </Route>
 
@@ -54,6 +59,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/viewUsers" element={<ViewUsers />} />
             <Route path="/admin/addUsers" element={<AddUsers />} />
+            <Route path="/admin/viewAllComplaints" element={<ViewAllComplaints />} />
           </Route>
         </Route>
       </Routes>

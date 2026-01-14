@@ -68,3 +68,22 @@ export const sendLoginNotification = async (toEmail, userName) => {
         console.error("Error sending email: ", err);
     }
 };
+
+export const sendComplaintConfirmation = async (toEmail) => {
+    const mailOptions = {
+        from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
+        to: toEmail,
+        subject: "Complaint Received – Baral Community Portal",
+        html: `
+        <div style="font-family: Arial; line-height:1.6">
+          <h2>Complaint Received</h2>
+          <p>Your complaint has been received successfully.</p>
+          <p>Please wait for our confirmation.</p>
+          <br/>
+          <p>Regards,<br/>Baral Community WAPDA Management</p>
+        </div>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+};

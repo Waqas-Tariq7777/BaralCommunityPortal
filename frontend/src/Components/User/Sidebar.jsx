@@ -5,6 +5,7 @@ import Logo from "../../assets/images/wapda_logo_bg.png";
 import { useAuthStore } from "../../Store/AuthStore.js";
 import { useEffect } from "react";
 import { MdForum } from "react-icons/md";
+import { FiList } from "react-icons/fi";
 import {
     AiOutlineDashboard,
     AiOutlineUser,
@@ -45,18 +46,11 @@ export default function Sidebar({ open, setOpen }) {
             base: "/user/dashboard"
         },
         {
-            name: "My Profile",
-            icon: AiOutlineUser,
-            base: "/user/myProfile"
-        },
-        {
             name: "Complaints",
             icon: AiOutlineFileText,
-            base: "/user/complaints",
             sub: [
-                { name: "pending", icon: AiOutlineFileText },
-                { name: "progress", icon: AiOutlineCheckCircle },
-                { name: "resolved", icon: AiOutlineCheckCircle }
+                { name: "Submit Complaint", path: "/user/submitComplaint", icon: AiOutlineFileText },
+                { name: "Complaint List", path: "/user/viewComplaintList", icon: FiList },
             ]
         },
         {
@@ -78,6 +72,11 @@ export default function Sidebar({ open, setOpen }) {
                 { name: "sent", icon: AiOutlineProfile },
                 { name: "archived", icon: AiOutlineHistory }
             ]
+        },
+        {
+            name: "My Profile",
+            icon: AiOutlineUser,
+            base: "/user/myProfile"
         },
     ];
 

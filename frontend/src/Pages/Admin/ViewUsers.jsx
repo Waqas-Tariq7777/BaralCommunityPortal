@@ -7,6 +7,7 @@ import UpdateUserModal from "../../Components/Admin/UpdateUserModal.jsx";
 import ViewUserModal from "../../Components/Admin/ViewUserModal.jsx";
 import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
+import { FiSearch } from "react-icons/fi";
 
 // capitalize words helper
 const capitalizeWords = (str) => str ? str.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "";
@@ -75,14 +76,47 @@ const UserManagement = () => {
     <div className="min-h-screen p-6 dark:bg-gray-900 transition-colors duration-300">
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">User Management</h1>
 
-      {/*SEARCH & VIEW TOGGLE */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-3 sm:space-y-0">
-        <input type="text" placeholder="Search users..." onChange={(e) => debouncedSearch(e.target.value)} className="border rounded px-4 py-2 w-full sm:w-1/2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all" />
-        <div className="flex space-x-2">
-          <button onClick={() => setView("grid")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "grid" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineAppstore size={20} /></button>
-          <button onClick={() => setView("list")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "list" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineUnorderedList size={20} /></button>
-        </div>
-      </div>
+     {/* SEARCH & VIEW TOGGLE */}
+<div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-3 sm:space-y-0">
+
+  {/* SEARCH INPUT WITH ICON */}
+  <div className="relative w-full sm:w-1/2">
+    <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+    <input
+      type="text"
+      placeholder="Search users..."
+      onChange={(e) => debouncedSearch(e.target.value)}
+      className="border rounded px-4 py-2 pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] transition-all"
+    />
+  </div>
+
+  {/* VIEW TOGGLE */}
+  <div className="flex space-x-2">
+    <button
+      onClick={() => setView("grid")}
+      className={`cursor-pointer p-2 rounded transition-colors duration-200 ${
+        view === "grid"
+          ? "bg-[#748dff] text-white"
+          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"
+      }`}
+    >
+      <AiOutlineAppstore size={20} />
+    </button>
+
+    <button
+      onClick={() => setView("list")}
+      className={`cursor-pointer p-2 rounded transition-colors duration-200 ${
+        view === "list"
+          ? "bg-[#748dff] text-white"
+          : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"
+      }`}
+    >
+      <AiOutlineUnorderedList size={20} />
+    </button>
+  </div>
+
+</div>
+
 
       {/* LOADING / NO USERS */}
       {loading ? <div className="flex justify-center items-center mt-20"><LoadingSpinner size={60} color="#748dff" /></div> :

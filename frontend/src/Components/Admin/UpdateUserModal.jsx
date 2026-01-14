@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
+import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
+import { AiOutlineEdit } from "react-icons/ai"; // New edit icon
 import { useAdminStore } from "../../Store/AdminStore.js";
 
 const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
@@ -56,94 +59,57 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity duration-300">
-      <div className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 relative transform transition-all duration-300 scale-100 animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
 
-        {/* Close Button */}
+      {/* BACKDROP */}
+      <div
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      ></div>
+
+      {/* MODAL CONTENT WITH FRAMER MOTION */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.25 }}
+        className="relative z-10 w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6"
+      >
+        {/* CLOSE ICON */}
         <button
           onClick={onClose}
-          className="cursor-pointer absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
+          className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition"
         >
-          <AiOutlineClose size={22} />
+          <FiX size={20} />
         </button>
 
-        <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">
-          Update User
-        </h2>
+        {/* HEADING */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-[#748dff] flex items-center justify-center text-white shadow-lg">
+            <AiOutlineEdit /> {/* Updated icon */}
+          </div>
+          <h2 className="text-2xl font-bold text-black dark:text-white">Update User</h2>
+        </div>
 
+        {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* User Name */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              User Name
-            </label>
-            <input
-              name="userName"
-              value={formData.userName}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email
-            </label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-
-          {/* Mobile Number */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              Mobile Number
-            </label>
-            <input
-              name="mobileNumber"
-              value={formData.mobileNumber}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-
-          {/* House Number */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              House Number
-            </label>
-            <input
-              name="houseNumber"
-              value={formData.houseNumber}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
-            />
-          </div>
-
-          {/* Designation */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              Designation
-            </label>
-            <input
-              name="designation"
-              value={formData.designation}
-              onChange={handleChange}
-              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
-            />
-          </div>
+          {["userName","email","mobileNumber","houseNumber","designation"].map((field) => (
+            <div key={field}>
+              <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
+                {field === "userName" ? "User Name" : field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                name={field}
+                value={formData[field]}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:border-[#748dff] focus:ring-2 focus:ring-[#748dff] outline-none dark:bg-gray-800 dark:text-white"
+              />
+            </div>
+          ))}
 
           {/* Password */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
-              Password
-            </label>
+            <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">Password</label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -151,29 +117,30 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Leave empty to keep current password"
-                className="w-full rounded-lg border px-4 py-2 pr-10 focus:ring-2 focus:ring-indigo-500 outline-none dark:bg-gray-800 dark:text-white"
+                className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-700 focus:border-[#748dff] focus:ring-2 focus:ring-[#748dff] outline-none dark:bg-gray-800 dark:text-white"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-500"
+                className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#748dff] transition"
               >
-                {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
+                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
               </button>
             </div>
           </div>
 
-          {/* Submit */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="cursor-pointer w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 rounded-lg transition font-medium disabled:opacity-50"
+            className=" drop-shadow-xl cursor-pointer w-full px-4 py-3 bg-[#748dff] hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg transition mt-2"
           >
             {loading ? "Updating..." : "Update User"}
           </button>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </div>,
+    document.body
   );
 };
 
