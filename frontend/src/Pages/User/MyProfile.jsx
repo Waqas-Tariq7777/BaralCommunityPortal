@@ -27,12 +27,12 @@ export default function UserProfile() {
 
     setUploading(true);
     const reader = new FileReader();
-    reader.onloadend = () => setPreviewUrl(reader.result); 
+    reader.onloadend = () => setPreviewUrl(reader.result);
     reader.readAsDataURL(file);
 
     try {
       const res = await uploadProfilePicture(userId, file);
-      setPreviewUrl(res.data.url); 
+      setPreviewUrl(res.data.url);
     } catch (err) {
       console.error(err);
       toast.error("Failed to upload profile picture");
@@ -72,28 +72,32 @@ export default function UserProfile() {
 
           <div className="text-center sm:text-left">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{user.userName}</h2>
-            <p className="text-gray-600 dark:text-[#748dff] flex items-center justify-center sm:justify-start gap-2"><FiMail /> {user.email}</p>
+            <p className="text-[#748dff] dark:text-[#748dff] flex items-center justify-center sm:justify-start gap-2 truncate max-w-[220px] sm:max-w-[300px]">
+              <FiMail /> {user.email}
+            </p>
           </div>
+
         </div>
 
         {/* USER DETAILS GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { icon: FiUser, label: "Name", value: user.userName },
-            { icon: FiMail, label: "Email", value: user.email },
-            { icon: FiPhone, label: "Mobile Number", value: user.mobileNumber || "N/A" },
-            { icon: FiHome, label: "House Number", value: user.houseNumber || "N/A" },
-            { icon: FiBriefcase, label: "Designation", value: user.designation || "N/A" },
-            { icon: FiCalendar, label: "Joined", value: user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : "N/A" },
-          ].map((item, idx) => (
-            <div key={idx} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3">
-              <item.icon className="text-gray-500 dark:text-[#748dff]" />
-              <div>
-                <p className="text-sm text-gray-500">{item.label}</p>
-                <p className="font-medium text-gray-900 dark:text-white">{item.value}</p>
-              </div>
-            </div>
-          ))}
+         {[
+  { icon: FiUser, label: "Name", value: user.userName },
+  { icon: FiMail, label: "Email", value: user.email },
+  { icon: FiPhone, label: "Mobile Number", value: user.mobileNumber || "N/A" },
+  { icon: FiHome, label: "House Number", value: user.houseNumber || "N/A" },
+  { icon: FiBriefcase, label: "Designation", value: user.designation || "N/A" },
+  { icon: FiCalendar, label: "Joined", value: user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : "N/A" },
+].map((item, idx) => (
+  <div key={idx} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3">
+    <item.icon className="text-gray-500 dark:text-[#748dff]" />
+    <div className="min-w-0">
+      <p className="text-sm text-gray-500">{item.label}</p>
+      <p className="font-medium text-gray-900 dark:text-white truncate">{item.value}</p>
+    </div>
+  </div>
+))}
+
         </div>
 
         {/* CHANGE PASSWORD */}

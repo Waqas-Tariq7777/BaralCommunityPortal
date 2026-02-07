@@ -15,7 +15,7 @@ export default function SubmitComplaint() {
   const [selected, setSelected] = useState(null);
 
   return (
-    <div className="min-h-screen dark:bg-gray-900 p-6">
+    <div className="min-h-screen dark:bg-slate-900 p-6">
       {/* Heading */}
       <h1 className="text-2xl font-bold text-center text-gray-800 dark:text-white mb-8">
         Select a Complaint Type

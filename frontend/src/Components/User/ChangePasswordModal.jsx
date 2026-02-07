@@ -83,7 +83,7 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.25 }}
-        className="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-[480px] p-7"
+        className="mx-4 relative z-10 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[480px] p-7"
       >
         {/* Close Icon */}
         <button

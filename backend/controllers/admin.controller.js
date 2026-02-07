@@ -74,10 +74,10 @@ const uploadUserViaCSV = asyncHandler(async (req, res) => {
 const getUsers = asyncHandler(async (req, res) => {
     const { limit = 25, lastId, search } = req.query;
     const query = { isAdmin: false };
-    if (lastId) query._id = { $gt: lastId };
+    if (lastId) query._id = { $lt: lastId };
     if (search) query.$or = [{ userName: new RegExp(search, "i") }, { email: new RegExp(search, "i") }, { houseNumber: new RegExp(search, "i") }];
 
-    const users = await User.find(query).sort({ _id: 1 }).limit(parseInt(limit));
+    const users = await User.find(query).sort({ _id: -1 }).limit(parseInt(limit));
     if (!users.length) return res.status(200).json(new ApiResponse(200, [], "No users found", { hasMore: false }));
 
     const lastUserId = users[users.length - 1]._id;

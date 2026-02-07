@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
 import { AiOutlineEdit } from "react-icons/ai"; // New edit icon
 import { useAdminStore } from "../../Store/AdminStore.js";
-
+import LoadingSpinner from "../LoadingSpinner.jsx";
 const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
   const updateUser = useAdminStore((state) => state.updateUser);
 
@@ -73,7 +73,7 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.25 }}
-        className="relative z-10 w-full max-w-lg bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-6"
+        className="relative z-10 w-full max-w-lg bg-white dark:bg-slate-900 mx-4 rounded-2xl shadow-2xl p-6"
       >
         {/* CLOSE ICON */}
         <button
@@ -93,7 +93,7 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
 
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {["userName","email","mobileNumber","houseNumber","designation"].map((field) => (
+          {["userName", "email", "mobileNumber", "houseNumber", "designation"].map((field) => (
             <div key={field}>
               <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
                 {field === "userName" ? "User Name" : field.charAt(0).toUpperCase() + field.slice(1)}
@@ -130,13 +130,15 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
           </div>
 
           {/* Submit Button */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className=" drop-shadow-xl cursor-pointer w-full px-4 py-3 bg-[#748dff] hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg transition mt-2"
+            className="drop-shadow-xl cursor-pointer w-full px-4 py-3 bg-[#748dff] hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg transition mt-2"
           >
-            {loading ? "Updating..." : "Update User"}
+            {loading ? <LoadingSpinner size={24} color="#ffffff" /> : "Update User"}
           </button>
+
         </form>
       </motion.div>
     </div>,

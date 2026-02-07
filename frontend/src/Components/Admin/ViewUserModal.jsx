@@ -9,7 +9,7 @@ const ViewUserModal = ({ isOpen, user, onClose }) => {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      
+
       {/* BACKDROP */}
       <div
         onClick={onClose}
@@ -21,7 +21,7 @@ const ViewUserModal = ({ isOpen, user, onClose }) => {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.25 }}
-        className="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-[480px] p-7"
+        className="relative z-10 bg-white dark:bg-slate-900 mx-4 rounded-2xl shadow-2xl w-[480px] p-7"
       >
         {/* CLOSE ICON */}
         <button
@@ -49,7 +49,7 @@ const ViewUserModal = ({ isOpen, user, onClose }) => {
           <h3 className="mt-3 text-xl font-semibold text-black dark:text-white">
             {user.userName}
           </h3>
-          <p className="text-[#748dff] text-sm">{user.designation || "User"}</p>
+          <p className="text-[#748dff] text-sm truncate max-w-[120px]">{user.designation || "User"}</p>
         </div>
 
         {/* USER DETAILS */}
@@ -69,10 +69,15 @@ const ViewUserModal = ({ isOpen, user, onClose }) => {
             <span className="text-black dark:text-white">House No: {user.houseNumber || "N/A"}</span>
           </div>
 
-          <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <FiUser className="text-orange-500 text-xl" />
-            <span className="text-black dark:text-white">Designation: {user.designation || "User"}</span>
+          <div className="flex items-start gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+            <FiUser className="text-orange-500 text-xl flex-shrink-0 mt-1" />
+            <span className="text-black dark:text-white max-h-20 overflow-y-auto block">
+              Designation: {user.designation || "User"}
+            </span>
           </div>
+
+
+
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
             <FiCalendar className="text-pink-500 text-xl" />

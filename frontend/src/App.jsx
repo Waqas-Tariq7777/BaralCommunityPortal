@@ -9,7 +9,7 @@ import Contact from './Pages/Contact.jsx';
 import ProtectedAdminRoutes from "./Routes/AdminRoutes.jsx";
 import ProtectedUserRoutes from "./Routes/UserRoutes.jsx";
 import AdminDashboard from './Pages/Admin/Dashboard.jsx';
-import UserDashboard from './Pages/User/Dashboard.jsx';
+import UserDashboard from './Pages/User/Post/Dashboard.jsx'
 import AdminLayout from "./Layouts/AdminLayout";
 import ViewUsers from './Pages/Admin/ViewUsers.jsx';
 import AddUsers from './Pages/Admin/AddUsers.jsx';
@@ -18,6 +18,10 @@ import MyProfile from './Pages/User/MyProfile.jsx';
 import SubmitComplaint from './Pages/User/SubmitComplaint.jsx';
 import ViewComplaintList from './Pages/User/ViewComplaintList.jsx';
 import ViewAllComplaints from './Pages/Admin/ViewAllComplaints.jsx';
+import ResolvedComplaints from './Pages/Admin/ResolvedComplaints.jsx';
+import PrivacyPolicy from './Pages/PrivacyPolicy.jsx';
+import AddPost from './Pages/Admin/Post/AddPost.jsx';
+import ViewPosts from './Pages/Admin/Post/ViewPosts.jsx';
 
 function App() {
 
@@ -43,10 +47,11 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
+        <Route path='/privacyPolicy' element={<PrivacyPolicy />} />
 
         <Route element={<ProtectedUserRoutes />}>
           <Route element={<UserLayout />}>
-            <Route path='/user/dashboard' element={<UserDashboard />} />
+            <Route path='/user/communityHub' element={<UserDashboard />} />
             <Route path='/user/myProfile' element={<MyProfile />} />
             <Route path='/user/submitComplaint' element={<SubmitComplaint />} />
             <Route path='/user/viewComplaintList' element={<ViewComplaintList />} />
@@ -60,6 +65,9 @@ function App() {
             <Route path="/admin/viewUsers" element={<ViewUsers />} />
             <Route path="/admin/addUsers" element={<AddUsers />} />
             <Route path="/admin/viewAllComplaints" element={<ViewAllComplaints />} />
+            <Route path="/admin/resolvedComplaints" element={<ResolvedComplaints />} />
+            <Route path="/admin/addPost" element={<AddPost />} />
+            <Route path="/admin/viewPosts" element={<ViewPosts />} />
           </Route>
         </Route>
       </Routes>

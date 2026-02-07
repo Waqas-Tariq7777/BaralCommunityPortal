@@ -6,6 +6,7 @@ import { useAuthStore } from "../../Store/AuthStore.js";
 import { useEffect } from "react";
 import { MdForum } from "react-icons/md";
 import { FiList } from "react-icons/fi";
+import { BsFillFilePostFill } from "react-icons/bs";
 import {
     AiOutlineDashboard,
     AiOutlineUser,
@@ -43,7 +44,7 @@ export default function Sidebar({ open, setOpen }) {
         {
             name: "Community Hub",
             icon: MdForum,
-            base: "/user/dashboard"
+            base: "/user/communityHub"
         },
         {
             name: "Complaints",

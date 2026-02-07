@@ -78,7 +78,7 @@ export default function UserDropdown() {
                 onClick={() =>
                   authStore.isAdmin
                     ? navigate("/admin/dashboard")
-                    : navigate("/user/dashboard")
+                    : navigate("/user/communityHub")
                 }
               >
                 <AiOutlineDashboard size={20} /> My Dashboard

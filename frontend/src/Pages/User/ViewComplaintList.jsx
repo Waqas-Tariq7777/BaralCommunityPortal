@@ -7,9 +7,8 @@ import ViewComplaintModal from "../../Components/User/ViewComplaintModal.jsx";
 import EditComplaintModal from "../../Components/User/UpdateComplaintModal.jsx";
 import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
-import { BsExclamationCircle, BsCheckCircle } from "react-icons/bs";
-import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiInfo, FiFilter } from "react-icons/fi";
+import { FiSearch, FiClock, FiFilter, FiLayers } from "react-icons/fi";
+import { useAuthStore } from "../../Store/AuthStore.js";
 
 // capitalize helper
 const capitalizeWords = (str) => str ? str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "";
@@ -22,7 +21,9 @@ const ViewComplaintList = () => {
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("Any");
   const [view, setView] = useState("grid");
-  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [isCollapsing, setIsCollapsing] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -30,39 +31,68 @@ const ViewComplaintList = () => {
   const [complaintToDelete, setComplaintToDelete] = useState(null);
   const [viewMoreClicked, setViewMoreClicked] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const getUserComplaints = useComplaintStore(state => state.getUserComplaints);
   const deleteComplaint = useComplaintStore(state => state.deleteComplaint);
+  const user = useAuthStore(state => state.user);
 
-  const fetchComplaints = useCallback(async ({ reset = false } = {}) => {
-    if (loading) return;
-    setLoading(true);
-    try {
-      const res = await getUserComplaints({
-        limit: 8,
-        lastId: reset ? null : lastId,
-        search,
-        type: typeFilter,
-        status: statusFilter
-      });
-      const data = res?.data ?? [];
-      const meta = res?.meta ?? {};
 
-      if (reset) setComplaints(data);
-      else setComplaints(prev => [...prev, ...data]);
+  const fetchComplaints = useCallback(
+    async ({ reset = false } = {}) => {
+      if (initialLoading || loadingMore) return;
 
-      setLastId(data.length ? data[data.length - 1]._id : null);
+      if (reset && complaints.length === 0) {
+        setInitialLoading(true);   // ONLY first load
+      } else {
+        setLoadingMore(true);      // View More & View Less
+      }
 
-      // Update hasMore correctly
-      const totalFetched = reset ? data.length : complaints.length + data.length;
-      setHasMore(typeof meta.hasMore === "boolean" ? meta.hasMore : totalFetched % 8 === 0 && data.length === 8);
 
-    } catch (err) {
-      console.error("Error fetching complaints:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [getUserComplaints, lastId, search, typeFilter, statusFilter, loading, complaints.length]);
+      try {
+        const res = await getUserComplaints({
+          limit: 12,
+          lastId: reset ? null : lastId,
+          search,
+          type: typeFilter,
+          status: statusFilter
+        });
+
+        const data = res?.data ?? [];
+        const meta = res?.meta ?? {};
+
+        setComplaints(prev =>
+          reset ? data : [...prev, ...data]
+        );
+
+        setLastId(data.length ? data[data.length - 1]._id : null);
+
+        // hasMore logic stays intact
+        setHasMore(
+          typeof meta.hasMore === "boolean"
+            ? meta.hasMore
+            : data.length === 12
+        );
+
+      } catch (err) {
+        console.error("Error fetching complaints:", err);
+      } finally {
+        setInitialLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [
+      getUserComplaints,
+      lastId,
+      search,
+      typeFilter,
+      statusFilter,
+      initialLoading,
+      loadingMore,
+      complaints.length
+    ]
+
+  );
+
 
 
   const debouncedSearch = useCallback(debounce(value => {
@@ -96,7 +126,7 @@ const ViewComplaintList = () => {
 
 
   return (
-    <div className="min-h-screen p-6 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen p-6 dark:bg-slate-900 transition-colors duration-300">
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Complaint Management</h1>
 
       {/* SEARCH & FILTERS & VIEW TOGGLE */}
@@ -159,163 +189,268 @@ const ViewComplaintList = () => {
       </div>
 
       {/* LOADING / NO DATA */}
-      {loading ? <div className="flex justify-center items-center mt-20"><LoadingSpinner size={60} color="#748dff" /></div> :
-        complaints.length === 0 ? <div className="text-center text-gray-500 dark:text-gray-400 mt-20 text-lg">No complaints found.</div> : (<>
+      {initialLoading ? (
+        <div className="flex justify-center mt-20">
+          <LoadingSpinner size={60} color="#748dff" />
+        </div>
+      ) : complaints.length === 0 ? (
+        <div className="text-center mt-20 text-gray-500">
+          No complaints found.
+        </div>
+      ) : (<>
 
-          {/* GRID VIEW */}
-          {view === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {complaints.map(c => (
-                <div key={c._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-lg p-6 space-y-3 transform hover:scale-105 transition-transform duration-300">
-                  <div className="space-y-3 text-gray-700 dark:text-gray-200">
-                    <p className="flex text-sm items-center gap-2"><AiOutlineMail className="text-orange-300 text-lg dark:text-[#748dff]" /> {c.userId?.email}</p>
-                    <p className="flex text-sm items-center gap-2"><AiOutlinePhone className="text-green-300 text-lg dark:text-[#748dff]" /> {c.userId?.mobileNumber}</p>
-                    <p className="flex text-sm items-center gap-2"><AiOutlineCalendar className="text-pink-300 text-lg dark:text-[#748dff]" /> {moment(c.createdAt).format("MMMM D, YYYY")}</p>
+        {/* GRID VIEW */}
+        {view === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {complaints.map(c => (
+              <div key={c._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-lg p-6 space-y-3 transform hover:scale-105 transition-transform duration-300">
+                <div className="space-y-3 text-gray-700 dark:text-gray-200">
+                  <p className="flex items-center gap-2 min-w-0 text-sm">
+                    <AiOutlineMail className="text-orange-300 text-lg flex-shrink-0 dark:text-[#748dff]" />
+                    <span className="truncate flex-1">{c.userId.email}</span>
+                  </p>
 
-                    {/* Pills above buttons only */}
-                    <div className="flex flex-col w-[100%] gap-2 mt-2">
 
-                      {/* TYPE PILL */}
-                      <div className="flex items-center gap-2">
-                        <RiFolderSettingsLine className="text-lg text-[#6e11b0]" /> {/* icon outside pill, larger size */}
-                        <span className="px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">
-                          {capitalizeWords(c.complaintType)}
-                        </span>
-                      </div>
+                  <p className="flex text-sm items-center gap-2"><AiOutlinePhone className="text-green-300 text-lg dark:text-[#748dff]" /> {c.userId?.mobileNumber}</p>
+                  <p className="flex text-sm items-center gap-2"><AiOutlineCalendar className="text-pink-300 text-lg dark:text-[#748dff]" /> {moment(c.createdAt).format("MMMM D, YYYY")}</p>
 
-                      {/* STATUS PILL */}
-                      <div className="flex items-center gap-2">
-                        <FiClock className="text-lg text-[#894b00]" /> {/* default icon color, will update below */}
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${c.status.toLowerCase() === "pending"
-                            ? "bg-[#fef9c2] text-[#894b00]"
-                            : c.status.toLowerCase() === "in progress"
+                  {/* Pills above buttons only */}
+                  <div className="flex flex-col w-[100%] gap-2 mt-2">
+
+                    {/* TYPE PILL */}
+                    <div className="flex items-center gap-2">
+                      <FiLayers className="text-lg text-[#6e11b0]" /> {/* icon outside pill, larger size */}
+                      <span className="px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">
+                        {capitalizeWords(c.complaintType)}
+                      </span>
+                    </div>
+
+                    {/* STATUS PILL */}
+                    <div className="flex items-center gap-2">
+                      <FiClock className="text-lg text-[#894b00]" /> {/* default icon color, will update below */}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${c.status.toLowerCase() === "pending"
+                          ? "bg-[#fef9c2] text-[#894b00]"
+                          : c.status.toLowerCase() === "in progress"
+                            ? "bg-[#eff6ff]  text-[#155dfc]"
+                            : c.status.toLowerCase() === "resolved"
                               ? "bg-[#d1fae5] text-[#065f46]"
-                              : c.status.toLowerCase() === "resolved"
-                                ? "bg-[#d1fae5] text-[#065f46]"
-                                : c.status.toLowerCase() === "rejected"
-                                  ? "bg-[#fee2e2] text-[#991b1b]"
-                                  : "bg-gray-200 text-gray-700"
-                            }`}
-                        >
-                          {capitalizeWords(c.status)}
-                        </span>
-                      </div>
+                              : c.status.toLowerCase() === "rejected"
+                                ? "bg-[#fee2e2] text-[#991b1b]"
+                                : "bg-gray-200 text-gray-700"
+                          }`}
+                      >
+                        {capitalizeWords(c.status)}
+                      </span>
+                    </div>
 
-                    </div>
-                    <div>
-                      <p className="flex items-center gap-2 mt-6 text-sm "> Reason:</p>
-                      <p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason}</p>
-                    </div>
                   </div>
-
-                  <div className="flex justify-center space-x-3 mt-2">
-                    <button onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }} className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition dark:bg-[#748dff] dark:text-white dark:hover:bg-indigo-500"><AiOutlineEye /> View</button>
-                    <button onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true) }} className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded transition dark:bg-[#748dff] dark:text-white dark:hover:bg-indigo-500"><AiOutlineEdit /> Edit</button>
-                    <button
-                      onClick={() => {
-                        if (c.status.toLowerCase() === "in progress") return; // Prevent action
-                        setComplaintToDelete(c);
-                        setShowDeleteModal(true);
-                      }}
-                      className={`cursor-pointer px-3 py-2 rounded transition ${c.status.toLowerCase() === "in progress"
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-[#ffe2e2] hover:bg-red-200 text-[#e91721]"
-                        }`}
-                      title={c.status.toLowerCase() === "in progress" ? "Cannot delete while In Progress" : "Delete Complaint"}
-                    >
-                      <AiOutlineDelete />
-                    </button>
-
+                  <div>
+                    <p className="flex items-center gap-2 mt-6 text-sm "> Reason:</p>
+                    <p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            /* TABLE VIEW */
-            <div className="overflow-x-auto bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-[#748dff]">
-              <table className="w-full text-sm text-left text-gray-700 dark:text-gray-200">
-                <thead className="bg-blue-50 dark:bg-indigo-400 text-gray-800 dark:text-gray-200 uppercase text-xs font-semibold sticky top-0">
-                  <tr>
-                    <th className="px-6 py-3 rounded-tl-2xl">Email</th>
-                    <th className="px-6 py-3">Phone</th>
-                    <th className="px-6 py-3">Type</th>
-                    <th className="px-6 py-3">Status</th>
-                    <th className="px-6 py-3">Submitted</th>
-                    <th className="px-6 py-3">Reason</th>
-                    <th className="px-6 py-3 text-center rounded-tr-2xl">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {complaints.map((c, idx) => (
-                    <tr key={c._id} className={`${idx % 2 === 0 ? "bg-white dark:bg-gray-900" : "bg-gray-50 dark:bg-gray-800"} border-t transition hover:bg-blue-50 dark:hover:bg-gray-800 dark:border-t-[#748dff]`}>
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{c.userId?.email}</td>
-                      <td className="px-6 py-4">{c.userId?.mobileNumber}</td>
-                      <td className="px-6 py-4"><span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#748dff] text-white text-xs font-semibold"><RiFolderSettingsLine /> {capitalizeWords(c.complaintType)}</span></td>
-                      <td className="px-6 py-4">
-  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-    c.status.toLowerCase() === "pending"
-      ? "bg-[#fef9c2] text-[#894b00]"
-      : c.status.toLowerCase() === "in progress"
-        ? "bg-[#d1fae5] text-[#065f46]"
-        : c.status.toLowerCase() === "resolved"
-          ? "bg-[#d1fae5] text-[#065f46]"
-          : c.status.toLowerCase() === "rejected"
-            ? "bg-[#fee2e2] text-[#991b1b]"
-            : "bg-gray-200 text-gray-700"
-  }`}>
-    <FiClock /> {capitalizeWords(c.status)}
-  </span>
-</td>
 
-                      <td className="px-6 py-4">{moment(c.createdAt).format("MMMM D, YYYY")}</td>
-                      <td className="px-6 py-4"><span className="font-semibold"></span>{c.reason}</td>
-                      <td className="px-6 py-4 flex justify-center space-x-3">
-                        <button onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }} className="cursor-pointer p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 transition dark:bg-[#748dff] dark:text-white dark:hover:bg-indigo-500"><AiOutlineEye className="w-5 h-5" /></button>
-                        <button onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true) }} className="cursor-pointer p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 hover:text-green-800 transition dark:bg-[#748dff] dark:text-white dark:hover:bg-indigo-500"><AiOutlineEdit className="w-5 h-5" /></button>
+                <div className="flex justify-center space-x-3 mt-2">
+                  {["in progress", "rejected", "resolved"].includes(c.status.toLowerCase()) ? (
+                    <button
+                      onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }}
+                      className="cursor-pointer w-full flex justify-center items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
+                    >
+                      <AiOutlineEye /> View
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }}
+                        className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition  dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
+                      >
+                        <AiOutlineEye /> View
+                      </button>
+                      <button
+                        onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true) }}
+                        className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded transition  dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200 "
+                      >
+                        <AiOutlineEdit /> Edit
+                      </button>
+                      <button
+                        onClick={() => { setComplaintToDelete(c); setShowDeleteModal(true); }}
+                        className="cursor-pointer px-3 py-2 rounded transition bg-[#ffe2e2] hover:bg-red-200 text-[#e91721] dark:bg-transparent dark:border dark:border-[#e91721] dark:text-[#e91721] dark:hover:bg-red-200"
+                      >
+                        <AiOutlineDelete />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* TABLE VIEW */
+          <div className="overflow-x-auto bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-[#748dff]">
+            <table className="w-full text-sm text-left text-gray-700 dark:text-gray-200">
+              <thead className="bg-blue-50 dark:bg-indigo-400 text-gray-800 dark:text-gray-200 uppercase text-xs font-semibold sticky top-0">
+                <tr>
+                  <th className="px-6 py-3 rounded-tl-2xl">User</th>
+                  <th className="px-6 py-3">Contact</th>
+                  <th className="px-6 py-3">Type</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3">Reason</th>
+                  <th className="px-6 py-3">Submitted</th>
+                  <th className="px-6 py-3 text-center rounded-tr-2xl">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {complaints.map((c, idx) => (
+                  <tr
+                    key={c._id}
+                    className={`${idx % 2 === 0
+                      ? "bg-white dark:bg-gray-900"
+                      : "bg-gray-50 dark:bg-gray-900"
+                      } border-t transition hover:bg-blue-50 dark:hover:bg-gray-800 dark:border-t-[#748dff]`}
+                  >
+
+                    {/* USER */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={user?.profilePicture.url || "/avatar.png"}
+                          alt="profile"
+                          className="w-9 h-9 rounded-full object-cover border border-[#748dff]"
+                        />
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {user?.userName}
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* CONTACT */}
+                    <td className="px-6 py-4 max-w-[200px]"> {/* optional max width for control */}
+                      <div className="flex flex-col text-sm min-w-0">
+                        <span className="font-medium truncate">{c.userId?.email}</span>
+                        <span className="text-gray-500 truncate">{c.userId?.mobileNumber}</span>
+                      </div>
+                    </td>
+
+
+                    {/* TYPE */}
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">
+                        {capitalizeWords(c.complaintType)}
+                      </span>
+                    </td>
+
+                    {/* STATUS */}
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${c.status.toLowerCase() === "pending"
+                          ? "bg-[#fef9c2] text-[#894b00]"
+                          : c.status.toLowerCase() === "in progress"
+                            ? "bg-[#eff6ff]  text-[#155dfc]"
+                            : c.status.toLowerCase() === "resolved"
+                              ? "bg-[#d1fae5] text-[#065f46]"
+                              : "bg-[#fee2e2] text-[#991b1b]"
+                          }`}
+                      >
+                        {capitalizeWords(c.status)}
+                      </span>
+                    </td>
+
+                    {/* REASON */}
+                    <td className="px-6 py-4 max-w-xs truncate">
+                      {c.reason}
+                    </td>
+
+                    {/* SUBMITTED */}
+                    <td className="px-6 py-4">
+                      {moment(c.createdAt).format("MMMM D, YYYY")}
+                    </td>
+
+                    {/* ACTIONS */}
+                    <td className="px-6 py-4 flex justify-center gap-3">
+                      {["in progress", "rejected", "resolved"].includes(c.status.toLowerCase()) ? (
                         <button
-                          onClick={() => {
-                            if (c.status.toLowerCase() === "in progress") return; // Prevent action
-                            setComplaintToDelete(c);
-                            setShowDeleteModal(true);
-                          }}
-                          className={`cursor-pointer px-3 py-2 rounded transition ${c.status.toLowerCase() === "in progress"
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-[#ffe2e2] hover:bg-red-200 text-[#e91721]"
-                            }`}
-                          title={c.status.toLowerCase() === "in progress" ? "Cannot delete while In Progress" : "Delete Complaint"}
+                          onClick={() => { setSelectedComplaint(c); setShowViewModal(true); }}
+                          className="cursor-pointer p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
                         >
-                          <AiOutlineDelete />
+                          <AiOutlineEye className="w-5 h-5" />
                         </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => { setSelectedComplaint(c); setShowViewModal(true); }}
+                            className="cursor-pointer p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
+                          >
+                            <AiOutlineEye className="w-5 h-5" />
+                          </button>
 
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <button
+                            onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true); }}
+                            className="cursor-pointer p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200"
+                          >
+                            <AiOutlineEdit className="w-5 h-5" />
+                          </button>
+
+                          <button
+                            onClick={() => { setComplaintToDelete(c); setShowDeleteModal(true); }}
+                            className="cursor-pointer p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition dark:bg-transparent dark:border dark:border-[#e91721] dark:text-[#e91721] dark:hover:bg-red-200"
+                          >
+                            <AiOutlineDelete className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                    </td>
+
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        )}
+      </>)}
+
+      {!initialLoading && (
+        <div className="mt-6 text-center flex justify-center gap-4">
+          {hasMore && (
+            <button
+              onClick={() => {
+                setViewMoreClicked(true);
+                fetchComplaints();
+              }}
+              disabled={loadingMore}
+              className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
+            >
+              {loadingMore && <LoadingSpinner size={18} color="#fff" />}
+              {loadingMore ? "Loading..." : "View More"}
+            </button>
           )}
-        </>)}
 
-      <div className="mt-6 text-center flex justify-center gap-4">
-        {hasMore && !loading && (
-          <button
-            onClick={() => { fetchComplaints(); setViewMoreClicked(true); }}
-            className="bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer"
-          >
-            View More
-          </button>
-        )}
+          {!hasMore && complaints.length > 12 && viewMoreClicked && (
+            <button
+              onClick={async () => {
+                setIsCollapsing(true);        // 1️⃣ keep button + show loader
+                await fetchComplaints({ reset: true });
+                setIsCollapsing(false);       // 2️⃣ stop loader
+                setViewMoreClicked(false);    // 3️⃣ NOW hide button
+              }}
+              disabled={loadingMore || isCollapsing}
+              className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
+            >
+              {(loadingMore || isCollapsing) && (
+                <LoadingSpinner size={18} color="#fff" />
+              )}
+              {(loadingMore || isCollapsing) ? "Loading..." : "View Less"}
+            </button>
 
-        {!hasMore && complaints.length > 8 && viewMoreClicked && (
-          <button
-            onClick={() => { handleViewLess(); setViewMoreClicked(false); }}
-            className="bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer"
-          >
-            View Less
-          </button>
-        )}
-      </div>
+
+          )}
+        </div>
+      )}
+
+
 
 
       {/* MODALS */}

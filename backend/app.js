@@ -5,6 +5,7 @@ import adminRoutes from './routes/admin.routes.js'
 import authRoutes from './routes/auth.routes.js'
 import userRoutes from './routes/user.routes.js'
 import complaintRoutes from './routes/complaint.routes.js'
+import postRoutes from './routes/post.routes.js'
 const app = express();
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
@@ -19,7 +20,7 @@ app.use(
                 callback(new Error("Not allowed by CORS"));
             }
         },
-        methods: ["GET", "POST", "PUT", "DELETE"],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
         credentials: true,
     })
 );
@@ -33,6 +34,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/complaint', complaintRoutes)
+app.use('/api/post', postRoutes)
 
 // Global Error Handler
 app.use((err, req, res, next) => {

@@ -1,9 +1,9 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { FiX, FiUser, FiMail, FiInfo, FiLayers, FiCheckCircle, FiClock, FiAlertTriangle } from "react-icons/fi";
+import { FiX, FiMail, FiInfo, FiLayers, FiCheckCircle, FiClock, FiAlertTriangle } from "react-icons/fi";
 import moment from "moment";
-
+import { AiOutlineCalendar } from "react-icons/ai";
 const ViewComplaintModal = ({ isOpen, complaint, onClose }) => {
   if (!isOpen || !complaint) return null;
 
@@ -11,18 +11,18 @@ const ViewComplaintModal = ({ isOpen, complaint, onClose }) => {
     pending: <FiClock className="text-yellow-500 text-xl" />,
     resolved: <FiCheckCircle className="text-green-500 text-xl" />,
     rejected: <FiAlertTriangle className="text-red-500 text-xl" />,
-    "in Progress": <FiInfo className="text-blue-500 text-xl" />,
+    "in progress": <FiInfo className="text-blue-500 text-xl" />,
   };
 
   const capitalize = text => text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className=" fixed inset-0 z-50 flex items-center justify-center">
       {/* BACKDROP */}
       <div onClick={onClose} className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
       {/* MODAL */}
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.25 }} className="relative z-10 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-[480px] p-7">
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.25 }} className="max-w-[480px] mx-4 relative z-10 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[480px] p-7">
         {/* CLOSE */}
         <button onClick={onClose} className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition"><FiX size={20} /></button>
 
@@ -59,14 +59,19 @@ const ViewComplaintModal = ({ isOpen, complaint, onClose }) => {
 
           <div className="flex gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
             <FiMail className="text-[#748dff] text-xl mt-1" />
-            <div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Complaint Message</p>
-              <p className="text-black dark:text-white">{complaint.message}</p>
+            <div className="w-full">
+              <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">
+                Complaint Message
+              </p>
+              <p className="text-black dark:text-white break-words whitespace-pre-wrap max-h-32 overflow-y-auto pr-1">
+                {complaint.message}
+              </p>
             </div>
           </div>
 
+
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <FiClock className="text-pink-500 text-xl" />
+            <AiOutlineCalendar className="text-pink-500 text-xl" />
             <span className="text-black dark:text-white">Submitted: {moment(complaint.createdAt).format("MMMM D, YYYY")}</span>
           </div>
         </div>

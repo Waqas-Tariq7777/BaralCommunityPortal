@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Logo from "../../assets/images/wapda_logo_bg.png";
 import { useAuthStore } from "../../Store/AuthStore.js";
+import { MdForum } from "react-icons/md";
+import { BsFillFilePostFill } from "react-icons/bs";
+import { MdOutlinePreview } from "react-icons/md";
 import {
     AiOutlineDashboard,
     AiOutlineUser,
@@ -51,8 +54,15 @@ export default function Sidebar({ open, setOpen }) {
             icon: AiOutlineFileText,
             sub: [
                 { name: "All Complaints", path: "/admin/viewAllComplaints", icon: AiOutlineFileText },
-                { name: "progress", icon: AiOutlineCheckCircle },
-                { name: "resolved", icon: AiOutlineCheckCircle }
+                { name: "Resolved Complaints", path: "/admin/resolvedComplaints", icon: AiOutlineCheckCircle },
+            ]
+        },
+        {
+            name: "Community Hub",
+            icon: MdForum,
+            sub: [
+                { name: "Add Post", path: "/admin/addPost", icon: BsFillFilePostFill },
+                { name: "View Posts", path: "/admin/viewPosts", icon: MdOutlinePreview  },
             ]
         },
         {

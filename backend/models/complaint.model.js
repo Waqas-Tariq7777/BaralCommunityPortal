@@ -33,13 +33,14 @@ const complaintSchema = new Schema(
     status: {
       type: String,
       required: true,
-      enum: ["pending", "resolved", "in Progress", "rejected"],
+      enum: ["pending", "resolved", "in progress", "rejected"],
     },
 
     message: {
       type: String,
       required: true,
     },
+    isReadByAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

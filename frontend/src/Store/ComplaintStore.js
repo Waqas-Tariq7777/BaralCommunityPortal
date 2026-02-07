@@ -29,7 +29,7 @@ export const useComplaintStore = create((set) => ({
       set({ loading: true });
       const params = { search, type, status, limit };
       if (lastId) params.lastId = lastId;
-
+      console.log("last id is:", lastId)
       const res = await axios.get(`${baseUrl}/api/complaint/user/getUserComplaint`, { params, withCredentials: true });
       return res.data; // { data: [...], message, meta: { lastId, hasMore } }
     } catch (err) {
@@ -40,6 +40,16 @@ export const useComplaintStore = create((set) => ({
       set({ loading: false });
     }
   },
+
+  markComplaintAsRead: async (complaintId) => {
+  try {
+    await axios.patch(`${baseUrl}/api/complaint/admin/markAsRead/${complaintId}`, {}, { withCredentials: true });
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  }
+},
 
   // Update complaint (user)
   updateComplaint: async (complaintId, payload) => {
@@ -91,6 +101,7 @@ export const useComplaintStore = create((set) => ({
     }
   },
 
+
   // Update complaint status (admin)
   updateComplaintStatus: async (complaintId, status) => {
     try {
@@ -106,5 +117,47 @@ export const useComplaintStore = create((set) => ({
       set({ loading: false });
     }
   },
+
+  // Resolve complaint with resources (admin)
+resolveComplaint: async (complaintId, resources) => {
+  try {
+    set({ loading: true });
+    const res = await axios.put(
+      `${baseUrl}/api/complaint/admin/resolvedComplaints/${complaintId}`,
+      { resources },
+      { withCredentials: true }
+    );
+    toast.success("Complaint resolved successfully");
+    return res.data.data;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  } finally {
+    set({ loading: false });
+  }
+},
+
+// Update resolved complaint resources (admin)
+updateResolvedResources: async (complaintId, resources) => {
+  try {
+    set({ loading: true });
+
+    const res = await axios.put(
+      `${baseUrl}/api/complaint/admin/updateResources/${complaintId}`,
+      { resources },
+      { withCredentials: true }
+    );
+
+    toast.success("Resources updated successfully");
+    return res.data.data; // updated complaint
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  } finally {
+    set({ loading: false });
+  }
+},
 
 }));

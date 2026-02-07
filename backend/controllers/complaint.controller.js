@@ -36,11 +36,11 @@ const getUserComplaints = asyncHandler(async (req, res) => {
   if (type && type !== "All") query.complaintType = type.toLowerCase();
   if (status && status !== "Any") query.status = status;
   if (search) query.reason = { $regex: search, $options: "i" };
-  if (lastId) query._id = { $gt: lastId };
+  if (lastId) query._id = { $lt: lastId };
 
   const complaints = await Complaint.find(query)
     .populate("userId", "email mobileNumber userName")
-    .sort({ _id: 1 })
+    .sort({ _id: -1 })
     .limit(parseInt(limit));
 
   if (!complaints.length) {
@@ -51,7 +51,7 @@ const getUserComplaints = asyncHandler(async (req, res) => {
 
   const lastComplaintId = complaints[complaints.length - 1]._id;
   const hasMore = complaints.length === parseInt(limit);
-
+  console.log("last is is:", lastComplaintId)
   res.status(200).json(
     new ApiResponse(200, complaints, "Complaints fetched successfully", {
       lastId: lastComplaintId,
@@ -111,8 +111,12 @@ const getAllComplaints = asyncHandler(async (req, res) => {
   const query = {};
 
   if (type && type !== "All") query.complaintType = type.toLowerCase();
-  if (status && status !== "Any") query.status = status;
-  if (lastId) query._id = { $gt: lastId };
+  if (!status || status.toLowerCase() === "any") {
+    query.status = { $ne: "resolved" }; // Exclude resolved
+  } else {
+    query.status = status; // Keep the filter if status is specified (pending, in progress, rejected, resolved)
+  }
+  if (lastId) query._id = { $lt: lastId };
 
   const userMatch = search
     ? {
@@ -130,7 +134,7 @@ const getAllComplaints = asyncHandler(async (req, res) => {
       select: "email mobileNumber userName houseNumber profilePicture",
       match: userMatch,
     })
-    .sort({ _id: 1 })
+    .sort({ _id: -1 })
     .limit(parseInt(limit));
 
   const filteredComplaints = complaints.filter(c => c.userId);
@@ -152,12 +156,28 @@ const getAllComplaints = asyncHandler(async (req, res) => {
   );
 });
 
+// Mark complaint as read by admin
+const markComplaintAsRead = asyncHandler(async (req, res) => {
+  const { complaintId } = req.params;
+
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) {
+    throw new ApiError(404, "Complaint not found");
+  }
+
+  // Update isAdminRead
+  complaint.isReadByAdmin = true;
+  await complaint.save();
+
+  res.status(200).json(new ApiResponse(200, complaint, "Complaint marked as read"));
+});
+
 // Update complaint status (admin)
 const updateComplaintStatus = asyncHandler(async (req, res) => {
   const { complaintId } = req.params;
   const { status } = req.body;
 
-  const allowed = ["pending", "in progress", "rejected", "resolved"];
+  const allowed = ["pending", "in progress", "rejected"];
   if (!allowed.includes(status)) throw new ApiError(400, "Invalid status");
 
   const complaint = await Complaint.findByIdAndUpdate(
@@ -173,11 +193,83 @@ const updateComplaintStatus = asyncHandler(async (req, res) => {
   );
 });
 
+// Resolve complaint with resources (admin)
+const resolvedComplaint = asyncHandler(async (req, res) => {
+  const { complaintId } = req.params;
+  const { resources } = req.body;
+
+  // 1. Validation
+  if (!Array.isArray(resources) || resources.length === 0) {
+    throw new ApiError(400, "At least one resource is required");
+  }
+
+  const hasInvalid = resources.some(
+    r => !r.name || r.cost === undefined || r.cost < 0
+  );
+  if (hasInvalid) {
+    throw new ApiError(400, "Invalid resource data");
+  }
+
+  // 2. Update complaint
+  const complaint = await Complaint.findByIdAndUpdate(
+    complaintId,
+    {
+      status: "resolved",
+      resources
+    },
+    { new: true }
+  ).populate("userId", "email userName houseNumber");
+
+  if (!complaint) {
+    throw new ApiError(404, "Complaint not found");
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, complaint, "Complaint resolved successfully")
+  );
+});
+
+const updateResolvedResources = asyncHandler(async (req, res) => {
+  const { complaintId } = req.params;
+  const { resources } = req.body;
+
+  // 1. Validation
+  if (!Array.isArray(resources) || resources.length === 0) {
+    throw new ApiError(400, "At least one resource is required");
+  }
+
+  const hasInvalid = resources.some(
+    r => !r.name || r.cost === undefined || r.cost < 0
+  );
+
+  if (hasInvalid) {
+    throw new ApiError(400, "Invalid resource data");
+  }
+
+  // 2. Update only resources (status stays resolved)
+  const complaint = await Complaint.findByIdAndUpdate(
+    complaintId,
+    { resources },
+    { new: true }
+  ).populate("userId", "email userName houseNumber");
+
+  if (!complaint) {
+    throw new ApiError(404, "Complaint not found");
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, complaint, "Resources updated successfully")
+  );
+});
+
 export {
   submitComplaint,
   getUserComplaints,
   updateUserComplaint,
   deleteComplaint,
   getAllComplaints,
-  updateComplaintStatus
+  updateComplaintStatus,
+  resolvedComplaint,
+  updateResolvedResources,
+  markComplaintAsRead
 };

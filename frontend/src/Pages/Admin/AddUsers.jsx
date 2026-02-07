@@ -99,10 +99,10 @@ const RecordUpload = () => {
   };
 
   return (
-    <div className="min-h-screen dark:bg-gray-900 py-8">
+    <div className="min-h-screen dark:bg-slate-900 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 shadow-sm border-b-4 border-[#748dff] rounded-t-lg px-6 py-4">
+        <div className="bg-white dark:bg-slate-800 shadow-sm border-b-4 border-[#748dff] rounded-t-lg px-6 py-4">
           <div className="flex items-center space-x-3">
             <div className="bg-[#748dff] dark:bg-[#748dff] p-2 rounded-lg">
               <AiOutlineUser className="h-6 w-6 text-white" />
@@ -115,12 +115,12 @@ const RecordUpload = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex bg-white dark:bg-gray-800 border-l border-r border-gray-200 dark:border-gray-700">
+        <div className="flex bg-white dark:bg-slate-800 border-l border-r border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab("form")}
             className={`cursor-pointer flex-1 px-6 py-3 text-sm font-medium ${
               activeTab === "form"
-                ? "border-b-2 border-[#748dff] text-[#748dff] bg-[#f0f3ff] dark:bg-gray-700"
+                ? "border-b-2 border-[#748dff] text-[#748dff] bg-[#f0f3ff] dark:bg-slate-700"
                 : "border-transparent text-gray-500 dark:text-gray-300"
             }`}
           >
@@ -139,7 +139,7 @@ const RecordUpload = () => {
         </div>
 
         {/* Content with Flip Animation */}
-        <div className="bg-white dark:bg-gray-800 shadow-sm border-l border-r border-b border-gray-200 dark:border-gray-700 rounded-b-lg p-6">
+        <div className="bg-white dark:bg-slate-800 shadow-sm border-l border-r border-b border-gray-200 dark:border-gray-700 rounded-b-lg p-6">
           <AnimatePresence exitBeforeEnter>
             {uploadResult && (
               <motion.div
