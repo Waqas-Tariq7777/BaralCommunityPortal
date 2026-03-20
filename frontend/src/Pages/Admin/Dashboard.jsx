@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAdminStore } from "../../Store/AdminStore";
 import UserStatsChart from "../../Components/Admin/UserStatsChart";
+import ResolvedComplaintsChart from "../../Components/Admin/ResolvedComplaintChart";
+import CategoryComplaintChart from "../../Components/Admin/CategoryChart";
 import {
   AiOutlineUser,
   AiOutlineClockCircle,
@@ -125,9 +127,13 @@ useEffect(() => {
   </div>
 </div>
       {/* User Chart */}
-      <div className="">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserStatsChart />
+        <ResolvedComplaintsChart />
       </div>
+      <div className="mt-6">
+  <CategoryComplaintChart />
+</div>
     </div>
   );
 }

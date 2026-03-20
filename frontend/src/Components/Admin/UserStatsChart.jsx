@@ -14,14 +14,14 @@ import { motion } from "framer-motion";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 export default function UserStatsChart() {
-  const [stats, setStats] = useState({ totalUsers: 0, addedUsers: 0, deletedUsers: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, weekStats: [] });
   const { getUserStats } = useAdminStore();
   const chartRef = useRef();
 
-  // Fetch stats
+  // Fetch stats for last 5 weeks
   useEffect(() => {
     const fetchStats = async () => {
-      const data = await getUserStats();
+      const data = await getUserStats(); // should return { totalUsers, weekStats: [{label, addedUsers, deletedUsers}, ...] }
       setStats(data);
     };
     fetchStats();
@@ -41,12 +41,13 @@ export default function UserStatsChart() {
   };
 
   const data = {
-    labels: ["This Week"],
+    labels: stats.weekStats.map((w) => w.label), // e.g., "13/3 - 19/3"
     datasets: [
       {
         label: "Added Users",
-        data: [stats?.addedUsers || 0],
+        data: stats.weekStats.map((w) => w.addedUsers),
         barThickness: 14,
+        borderRadius: 2,
         backgroundColor: function (context) {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
@@ -57,8 +58,9 @@ export default function UserStatsChart() {
       },
       {
         label: "Deleted Users",
-        data: [stats?.deletedUsers || 0],
+        data: stats.weekStats.map((w) => w.deletedUsers),
         barThickness: 14,
+        borderRadius: 2,
         backgroundColor: function (context) {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
@@ -104,8 +106,7 @@ export default function UserStatsChart() {
     },
     animation: {
       duration: 2000,
-      easing: "easeInOutQuart", // animate only on initial load
-      // removed loop
+      easing: "easeInOutQuart",
     },
     datasets: {
       bar: {
@@ -133,7 +134,7 @@ export default function UserStatsChart() {
           <h2 className="text-xl font-bold text-white drop-shadow-lg">
             User Analytics
           </h2>
-          <p className="text-sm text-indigo-100/80">Added vs Deleted Users (Weekly)</p>
+          <p className="text-sm text-indigo-100/80">Added vs Deleted Users (Last 5 Weeks)</p>
         </div>
 
         {/* Total Users */}

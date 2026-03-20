@@ -164,26 +164,140 @@ const getComplaintStats = asyncHandler(async (req, res) => {
 const getUserStats = asyncHandler(async (req, res) => {
   const totalUsers = await User.countDocuments({ isAdmin: false });
 
+  const weeksCount = 5; // number of weeks to show
   const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const weekStart = new Date(now.setDate(diff));
-  weekStart.setHours(0, 0, 0, 0);
+  const weekStats = [];
 
-  const addedUsers = await User.countDocuments({
-    isAdmin: false,
-    createdAt: { $gte: weekStart },
-  });
+  for (let i = weeksCount - 1; i >= 0; i--) {
+    // Calculate Monday of each week
+    const temp = new Date(now);
+    const day = temp.getDay(); // 0 = Sunday
+    const diffToMonday = temp.getDate() - day + (day === 0 ? -6 : 1); 
+    temp.setDate(diffToMonday - 7 * i); // go back i weeks
+    temp.setHours(0, 0, 0, 0);
+    const weekStart = new Date(temp);
 
-  const deletedUsers = await UserDeletionLog.countDocuments({
-    deletedAt: { $gte: weekStart },
-  });
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const addedUsers = await User.countDocuments({
+      isAdmin: false,
+      createdAt: { $gte: weekStart, $lte: weekEnd },
+    });
+
+    const deletedUsers = await UserDeletionLog.countDocuments({
+      deletedAt: { $gte: weekStart, $lte: weekEnd },
+    });
+
+    // Save stats with week label
+    weekStats.push({
+      label: `${weekStart.getDate()}/${weekStart.getMonth() + 1} - ${weekEnd.getDate()}/${weekEnd.getMonth() + 1}`,
+      addedUsers,
+      deletedUsers,
+    });
+  }
 
   res.status(200).json({
     totalUsers,
-    addedUsers,
-    deletedUsers,
+    weekStats,
   });
 });
 
-export { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getAnnouncementsCount, getComplaintStats, getUserStats};
+// controllers/complaint.controller.js
+const getMonthlyComplaintStats = asyncHandler(async (req, res) => {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  const statuses = ["pending", "in progress", "rejected", "resolved"];
+  const counts = {};
+
+  for (const status of statuses) {
+    counts[status] = await Complaint.countDocuments({
+      status,
+      createdAt: { $gte: monthStart, $lte: monthEnd },
+    });
+  }
+
+  const totalComplaints = Object.values(counts).reduce((a, b) => a + b, 0);
+
+  return res.status(200).json(
+    new ApiResponse(200, { totalComplaints, counts }, "Monthly complaint stats fetched")
+  );
+});
+
+const getYearlyCategoryStats = asyncHandler(async (req, res) => {
+  const now = new Date();
+  const year = now.getFullYear();
+
+  const startOfYear = new Date(year, 0, 1);
+  const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+
+  // STEP 1: Get all unique categories
+  const categories = await Complaint.distinct("reason");
+
+  // STEP 2: Aggregate data
+  const stats = await Complaint.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startOfYear, $lte: endOfYear },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          month: { $month: "$createdAt" },
+          category: "$reason",
+        },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  // STEP 3: Initialize structure (12 months)
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const formatted = {};
+
+  categories.forEach(cat => {
+    formatted[cat] = new Array(12).fill(0);
+  });
+
+  // STEP 4: Fill data
+  stats.forEach(item => {
+    const monthIndex = item._id.month - 1;
+    const category = item._id.category;
+
+    if (!formatted[category]) {
+      formatted[category] = new Array(12).fill(0);
+    }
+
+    formatted[category][monthIndex] = item.count;
+  });
+
+  // STEP 5: Current Month Data
+  const currentMonth = now.getMonth();
+
+  const currentMonthStats = {};
+  categories.forEach(cat => {
+    currentMonthStats[cat] = formatted[cat][currentMonth] || 0;
+  });
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        months,
+        categoryData: formatted,
+        currentMonthStats,
+      },
+      "Yearly category stats fetched successfully"
+    )
+  );
+});
+
+export { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getAnnouncementsCount, getComplaintStats, getUserStats, getMonthlyComplaintStats, getYearlyCategoryStats};

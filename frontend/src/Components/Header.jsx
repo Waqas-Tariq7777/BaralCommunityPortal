@@ -52,7 +52,7 @@ export default function Header() {
               <h4 className={`text-sm font-bold ${scrolled ? "text-gray-600" : "text-white"}`}>Community Services</h4>
             </div>
           </div>
-
+           
           {/* desktop navigation */}
           <nav className={`hidden md:flex gap-8 font-medium transition-all duration-300 justify-center flex-1 ${scrolled ? "text-gray-700 dark:text-gray-500" : "text-white"}`}>
             <NavLink to="/" className={({ isActive }) => `relative px-2 py-1 rounded-md transition-all duration-300 hover:bg-white hover:backdrop-blur-md hover:text-[#748dff] after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-0 after:transition-all after:duration-300 hover:after:w-full ${scrolled ? "after:bg-[#748dff]" : "after:bg-white"} ${isActive ? "bg-white backdrop-blur-md text-[#748dff] after:w-full" : ""}`}>Home</NavLink>
@@ -82,6 +82,7 @@ export default function Header() {
 
       {/* login popup */}
       <LoginPopup open={openLogin} onClose={() => setOpenLogin(false)} />
+        
     </>
   );
 }

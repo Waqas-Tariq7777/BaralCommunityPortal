@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getComplaintStats, getUserStats } from "../controllers/admin.controller.js";
+import { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getComplaintStats, getUserStats, getMonthlyComplaintStats, getYearlyCategoryStats } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { isAdmin } from "../middlewares/isAdmin.middleware.js";
 import { uploadCSV } from "../middlewares/uploadCSV.middleware.js";
@@ -15,4 +15,11 @@ router.get("/getUsersCount", verifyJWT, isAdmin, getUsersCount);
 router.get("/getAnnouncementsCount", verifyJWT, isAdmin, getAnnouncementsCount);
 router.get("/getComplaintStats", verifyJWT, isAdmin, getComplaintStats);
 router.get("/getUserStats", verifyJWT, isAdmin, getUserStats);
+router.get("/getMonthlyComplaintStats", verifyJWT, isAdmin, getMonthlyComplaintStats);
+router.get(
+  "/getYearlyCategoryStats",
+  verifyJWT,
+  isAdmin,
+  getYearlyCategoryStats
+);
 export default router;  

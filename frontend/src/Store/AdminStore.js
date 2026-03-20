@@ -125,4 +125,28 @@ getUserStats: async () => {
   }
 },
 
+getMonthlyComplaintStats: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getMonthlyComplaintStats`, {
+      withCredentials: true,
+    });
+    return res.data.data; // { totalComplaints, resolvedComplaints }
+  } catch (err) {
+    toast.error(err?.response?.data?.message || err.message);
+    return { totalComplaints: 0, resolvedComplaints: 0 };
+  }
+},
+
+getYearlyCategoryStats: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getYearlyCategoryStats`, {
+      withCredentials: true,
+    });
+    return res.data.data;
+  } catch (err) {
+    toast.error(err?.response?.data?.message || err.message);
+    return { months: [], categoryData: {}, currentMonthStats: {} };
+  }
+},
+
 }));
