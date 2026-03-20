@@ -35,7 +35,9 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/complaint', complaintRoutes)
 app.use('/api/post', postRoutes)
-
+app.get("/test", (req,res)=>{
+  res.send("Server working");
+});
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack); // optional: logs error in backend

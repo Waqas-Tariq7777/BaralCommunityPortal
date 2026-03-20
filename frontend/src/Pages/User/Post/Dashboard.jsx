@@ -7,13 +7,10 @@ import PostImageModal from "../../../Components/User/Post/PostImageModal.jsx";
 import LoadingSpinner from "../../../Components/LoadingSpinner.jsx";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../../Store/AuthStore.js";
-import {
-    AiOutlineNotification,
-} from "react-icons/ai";
-// One week in milliseconds
+import { AiOutlineNotification } from "react-icons/ai";
+
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Gradient color schemes (same as complaint cards)
 const colors = [
   "from-blue-500 to-blue-400",
   "from-purple-500 to-purple-400",
@@ -38,7 +35,6 @@ const PostFeed = () => {
   const getPosts = usePostStore((state) => state.getPosts);
   const isAdmin = useAuthStore((state) => state.isAdmin);
 
-  // Filter important posts (auto-expire after 1 week)
   const importantPosts = posts.filter((post) => {
     if (!post.isImportant || !post.createdAt) return false;
     const age = Date.now() - new Date(post.createdAt).getTime();
@@ -123,36 +119,42 @@ const PostFeed = () => {
       {!isAdmin && importantPosts.length > 0 && (
         <div className="mb-6 w-full border-2 border-[#748dff] mx-auto rounded-2xl p-4 overflow-hidden relative">
           <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-[#748dff]">
-            <AiOutlineNotification className="text-3xl text-[#748dff]" />Important Announcements
+            <AiOutlineNotification className="text-3xl text-[#748dff]" />
+            Important Announcements
           </h2>
 
-          <div
-            className="relative overflow-hidden whitespace-nowrap"
-          >
-            <div
-              className="flex gap-3 animate-marquee"
-              style={{ display: "inline-flex" }}
-            >
-              {importantPosts.map((post, idx) => {
-                const color = colors[idx % colors.length]; // Cycle colors
+          <div className="relative overflow-hidden w-full">
+
+            {/* duplicated slides for seamless loop */}
+            <div className="flex gap-4 marquee-track">
+
+              {[...importantPosts, ...importantPosts].map((post, idx) => {
+                const color = colors[idx % colors.length];
+
                 return (
                   <div
-                    key={post._id}
+                    key={idx}
                     onClick={() => scrollToPost(post._id)}
-                    className={`cursor-pointer inline-block w-auto min-w-[500px] p-3 rounded-xl text-white transform transition-all duration-300 hover:scale-98 hover:shadow-2xl relative overflow-hidden bg-gradient-to-br ${color}`}
+                    className={`cursor-pointer flex-shrink-0 w-[420px] h-[110px] p-4 rounded-xl text-white transition-all duration-300 hover:scale-95 hover:shadow-2xl relative overflow-hidden bg-gradient-to-br ${color}`}
                   >
-                    <div className="flex justify-between items-center relative z-10">
-                      <div>
-                        <h3 className="font-semibold break-words">{post.title}</h3>
-                        <p className="text-sm line-clamp-2 break-words">
+                    <div className="flex justify-between items-start h-full relative z-10">
+                      <div className="flex flex-col justify-between h-full pr-3">
+                        <p className="font-bold text-sm whitespace-normal break-all overflow-hidden line-clamp-2">
                           {post.content?.replace(/<[^>]+>/g, "")}
                         </p>
-                        <span className="text-xs opacity-80">Posted recently</span>
+
+                        <p className="text-xs break-words line-clamp-2">
+                          {post.content?.replace(/<[^>]+>/g, "")}
+                        </p>
+
+                        <span className="text-[10px] opacity-80">
+                          Posted recently
+                        </span>
                       </div>
-                      <AiOutlineNotification className="text-3xl opacity-80" />
+
+                      <AiOutlineNotification className="text-2xl opacity-80 flex-shrink-0" />
                     </div>
 
-                    {/* Animated pulse overlay */}
                     <span className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-20 animate-pulse rounded-xl"></span>
                   </div>
                 );
@@ -163,21 +165,27 @@ const PostFeed = () => {
       )}
 
       {/* Search */}
-      <div className="flex items-center mb-6">
-        <div className="relative w-full xl:w-[850px] mx-auto">
-          <FiSearch className="absolute left-3 top-3 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search posts..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              debouncedSearch(e.target.value);
-            }}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
-          />
-        </div>
-      </div>
+<div className="flex items-center mb-6">
+  <div className="relative w-full xl:w-[850px] mx-auto">
+    <FiSearch className="absolute left-3 top-3 text-slate-400 dark:text-slate-300" />
+    <input
+      type="text"
+      placeholder="Search posts..."
+      value={search}
+      onChange={(e) => {
+        setSearch(e.target.value);
+        debouncedSearch(e.target.value);
+      }}
+      className="w-full pl-10 pr-4 py-2 rounded-xl border 
+      border-slate-300 dark:border-[#748dff]
+      bg-white dark:bg-slate-900
+      text-slate-800 dark:text-white
+      placeholder:text-slate-400 dark:placeholder:text-slate-300
+      focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff]
+      transition-colors duration-200"
+    />
+  </div>
+</div>
 
       {/* Posts */}
       <div className="w-full flex flex-col items-center px-3 py-6">
@@ -194,7 +202,6 @@ const PostFeed = () => {
 
       {initialLoading && <LoadingSpinner size={40} color="#748dff" />}
 
-      {/* No Posts */}
       {!initialLoading && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center mt-24 text-slate-500 dark:text-slate-400">
           <FaRegMessage className="text-indigo-400 text-4xl mb-3" />
@@ -210,7 +217,7 @@ const PostFeed = () => {
           {loadingMore && <LoadingSpinner size={40} color="#748dff" />}
         </div>
       )}
-      {/* End of Feed Message */}
+
       {!hasMore && posts.length > 0 && !loadingMore && (
         <div className="flex flex-col items-center text-slate-500 py-6 space-y-2">
           <FaRegMessage className="text-3xl text-[#748dff]" />
@@ -220,6 +227,7 @@ const PostFeed = () => {
           </p>
         </div>
       )}
+
       {modalImages && (
         <PostImageModal
           images={modalImages}

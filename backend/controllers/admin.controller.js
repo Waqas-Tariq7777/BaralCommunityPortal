@@ -4,6 +4,10 @@ import { ApiResponse } from '../utils/apiResponse.js';
 import { User } from '../models/user.model.js';
 import fs from "fs";
 import xlsx from "xlsx";
+import { Post } from '../models/post.model.js';
+import { Complaint } from "../models/complaint.model.js";
+import mongoose from "mongoose"; // make sure mongoose is imported at the top
+import { UserDeletionLog } from "../models/userDeletionLog.model.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
@@ -118,14 +122,68 @@ const updateUsers = asyncHandler(async (req, res) => {
 });
 
 const deleteUsers = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    if (!id) throw new ApiError(400, "User ID is required");
+  const { id } = req.params;
 
-    const user = await User.findById(id);
-    if (!user) throw new ApiError(404, "User not found");
+  const user = await User.findById(id);
+  if (!user) throw new ApiError(404, "User not found");
 
-    await user.deleteOne();
-    res.status(200).json(new ApiResponse(200, null, "User deleted successfully"));
+  // ✅ Log deletion BEFORE removing
+  await UserDeletionLog.create({
+    userId: user._id,
+  });
+
+  // ✅ Permanently delete
+  await user.deleteOne();
+
+  res.status(200).json(new ApiResponse(200, null, "User deleted successfully"));
 });
 
-export { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers };
+const getUsersCount = asyncHandler(async (req, res) => {
+    const totalUsers = await User.countDocuments({ isAdmin: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, { totalUsers }, "Total users fetched successfully")
+    );
+});
+
+const getAnnouncementsCount = asyncHandler(async (req, res) => {
+  const count = await Post.countDocuments({ isImportant: true });
+  return res.status(200).json({ count });
+});
+
+const getComplaintStats = asyncHandler(async (req, res) => {
+  const pendingCount = await Complaint.countDocuments({ status: "pending" });
+  const resolvedCount = await Complaint.countDocuments({ status: "resolved" });
+
+  return res.status(200).json({
+    pending: pendingCount,
+    resolved: resolvedCount,
+  });
+});
+
+const getUserStats = asyncHandler(async (req, res) => {
+  const totalUsers = await User.countDocuments({ isAdmin: false });
+
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const weekStart = new Date(now.setDate(diff));
+  weekStart.setHours(0, 0, 0, 0);
+
+  const addedUsers = await User.countDocuments({
+    isAdmin: false,
+    createdAt: { $gte: weekStart },
+  });
+
+  const deletedUsers = await UserDeletionLog.countDocuments({
+    deletedAt: { $gte: weekStart },
+  });
+
+  res.status(200).json({
+    totalUsers,
+    addedUsers,
+    deletedUsers,
+  });
+});
+
+export { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getAnnouncementsCount, getComplaintStats, getUserStats};

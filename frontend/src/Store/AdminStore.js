@@ -75,4 +75,54 @@ deleteUser: async (id) => {
     }
   },
 
+  getUsersCount: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getUsersCount`, {
+      withCredentials: true,
+    });
+    return res.data.data.totalUsers;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  }
+},
+
+getAnnouncementsCount: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getAnnouncementsCount`, {
+      withCredentials: true,
+    });
+    return res.data.count;
+  } catch (err) {
+    toast.error(err?.response?.data?.message || err.message);
+    return 0;
+  }
+},
+
+getComplaintStats: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getComplaintStats`, {
+      withCredentials: true,
+    });
+    return res.data; // { pending, resolved }
+  } catch (err) {
+    toast.error(err?.response?.data?.message || err.message);
+    return { pending: 0, resolved: 0 };
+  }
+},
+
+getUserStats: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getUserStats`, {
+      withCredentials: true,
+    });
+    return res.data; // { totalUsers, weeklyUsers }
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    return { totalUsers: 0, weeklyUsers: 0 };
+  }
+},
+
 }));
