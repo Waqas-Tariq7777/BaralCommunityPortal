@@ -5,9 +5,31 @@ import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
 import { AiOutlineEdit } from "react-icons/ai"; // New edit icon
 import { useAdminStore } from "../../Store/AdminStore.js";
 import LoadingSpinner from "../LoadingSpinner.jsx";
+import { toast } from "react-toastify";
 const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
   const updateUser = useAdminStore((state) => state.updateUser);
+const validateForm = () => {
+  const { userName, email, mobileNumber, houseNumber, designation, password } = formData;
 
+  if (!userName || !email || !mobileNumber || !houseNumber || !designation) {
+    toast.error("All fields are required!");
+    return false;
+  }
+
+  // Password validation only if user entered it
+  if (password) {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
+
+    if (!passwordRegex.test(password)) {
+      toast.error(
+        "Password must contain at least 6 characters, 1 uppercase and 1 lowercase letter and 1 digit"
+      );
+      return false;
+    }
+  }
+
+  return true;
+};
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
@@ -42,22 +64,27 @@ const UpdateUserModal = ({ isOpen, onClose, user, onSuccess }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
 
-    try {
-      const payload = { ...formData };
-      if (!payload.password) delete payload.password;
+  if (!validateForm()) return;
 
-      await updateUser(user._id, payload);
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+
+  try {
+    const payload = { ...formData };
+    if (!payload.password) delete payload.password;
+
+    await updateUser(user._id, payload);
+
+    onSuccess();
+    onClose();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update user ❌");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">

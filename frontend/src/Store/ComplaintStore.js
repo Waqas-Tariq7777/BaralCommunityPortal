@@ -160,4 +160,23 @@ updateResolvedResources: async (complaintId, resources) => {
   }
 },
 
+// Store: ComplaintStore.js
+deleteResolvedComplaint: async (complaintId) => {
+  try {
+    set({ loading: true });
+    await axios.delete(
+      `${baseUrl}/api/complaint/admin/deleteResolved/${complaintId}`,
+      { withCredentials: true }
+    );
+    toast.success("Resolved complaint deleted successfully");
+    return true;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  } finally {
+    set({ loading: false });
+  }
+},
+
 }));

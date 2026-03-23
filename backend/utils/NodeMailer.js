@@ -4,21 +4,21 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false, // true if port 465 (SSL)
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
+  host: process.env.EMAIL_HOST,
+  port: Number(process.env.EMAIL_PORT),
+  secure: false, // true if port 465 (SSL)
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 export const sendLoginNotification = async (toEmail, userName) => {
-    const mailOptions = {
-        from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
-        to: toEmail,
-        subject: "Login Alert – Baral Community Portal",
-        html: `
+  const mailOptions = {
+    from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "Login Alert – Baral Community Portal",
+    html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2 style="color: #1d4ed8;">Welcome to Baral Community Portal</h2>
 
@@ -58,23 +58,23 @@ export const sendLoginNotification = async (toEmail, userName) => {
         </p>
       </div>
     `,
-    };
+  };
 
 
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent: ", info.response);
-    } catch (err) {
-        console.error("Error sending email: ", err);
-    }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: ", info.response);
+  } catch (err) {
+    console.error("Error sending email: ", err);
+  }
 };
 
 export const sendComplaintConfirmation = async (toEmail) => {
-    const mailOptions = {
-        from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
-        to: toEmail,
-        subject: "Complaint Received – Baral Community Portal",
-        html: `
+  const mailOptions = {
+    from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "Complaint Received – Baral Community Portal",
+    html: `
         <div style="font-family: Arial; line-height:1.6">
           <h2>Complaint Received</h2>
           <p>Your complaint has been received successfully.</p>
@@ -83,7 +83,34 @@ export const sendComplaintConfirmation = async (toEmail) => {
           <p>Regards,<br/>Baral Community WAPDA Management</p>
         </div>
         `,
-    };
+  };
 
-    await transporter.sendMail(mailOptions);
+  await transporter.sendMail(mailOptions);
 };
+export const sendResetPasswordEmail = async (toEmail, resetLink) => {
+  const mailOptions = {
+    from: `"Baral Community WAPDA Management" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: "Reset Your Password",
+    html: `
+        <div style="font-family: Arial; line-height:1.6">
+          <h2>Password Reset Request</h2>
+          <p>You requested to reset your password.</p>
+          <p>Click below link to reset:</p>
+
+          <a href="${resetLink}" 
+             style="background:#748dff;color:white;padding:10px 15px;border-radius:5px;text-decoration:none;">
+             Reset Password
+          </a>
+
+          <p>This link will expire in 15 minutes.</p>
+
+          <br/>
+          <p>Regards,<br/>Baral Community</p>
+        </div>
+        `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+

@@ -73,3 +73,22 @@ body {
   }
 }
 
+/* Avatar soft blink */
+@keyframes blink {
+  0%, 90%, 100% { opacity: 1; }
+  95% { opacity: 0.3; }
+}
+
+.animate-blink {
+  animation: blink 4s infinite;
+}
+
+/* Eyes blink effect */
+@keyframes eyeBlink {
+  0%, 92%, 100% { transform: scaleY(0); }
+  95% { transform: scaleY(1); }
+}
+
+.animate-eyeBlink {
+  animation: eyeBlink 4s infinite;
+}

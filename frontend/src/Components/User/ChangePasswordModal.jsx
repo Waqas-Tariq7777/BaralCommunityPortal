@@ -4,6 +4,7 @@ import { useUserStore } from "../../Store/UserStore.js";
 import { FiEye, FiEyeOff, FiLock, FiX } from "react-icons/fi";
 import { motion } from "framer-motion";
 import LoadingSpinner from "../LoadingSpinner.jsx";
+import { useTranslation } from "react-i18next";
 
 function SuccessCheck() {
   return (
@@ -19,6 +20,7 @@ function SuccessCheck() {
 }
 
 export default function ChangePasswordModal({ isOpen, onClose, userId }) {
+  const { t } = useTranslation();
   const changePassword = useUserStore((state) => state.changePassword);
 
   const [currentPassword, setCurrentPassword] = useState("");
@@ -48,11 +50,11 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
     setErrors({ current: "", new: "", confirm: "", submit: "" });
     let hasError = false;
 
-    if (!currentPassword) { setErrors((prev) => ({ ...prev, current: "Current password is required" })); hasError = true; }
-    if (!newPassword) { setErrors((prev) => ({ ...prev, new: "New password is required" })); hasError = true; }
-    if (!confirmPassword) { setErrors((prev) => ({ ...prev, confirm: "Confirm password is required" })); hasError = true; }
-    if (newPassword && confirmPassword && newPassword !== confirmPassword) { setErrors((prev) => ({ ...prev, confirm: "Passwords do not match" })); hasError = true; }
-    if (newPassword && !validatePassword(newPassword)) { setErrors((prev) => ({ ...prev, new: "Password must be 6+ chars, with uppercase, lowercase, and a number" })); hasError = true; }
+    if (!currentPassword) { setErrors((prev) => ({ ...prev, current: t("current_password_required") })); hasError = true; }
+    if (!newPassword) { setErrors((prev) => ({ ...prev, new: t("new_password_required") })); hasError = true; }
+    if (!confirmPassword) { setErrors((prev) => ({ ...prev, confirm: t("confirm_password_required") })); hasError = true; }
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) { setErrors((prev) => ({ ...prev, confirm: t("passwords_do_not_match") })); hasError = true; }
+    if (newPassword && !validatePassword(newPassword)) { setErrors((prev) => ({ ...prev, new: t("password_invalid") })); hasError = true; }
 
     if (hasError) return;
 
@@ -66,26 +68,20 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
         setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
       }, 1500);
     } catch (err) {
-      setErrors((prev) => ({ ...prev, submit: err.message || "Failed to change password" }));
+      setErrors((prev) => ({ ...prev, submit: err.message || t("password_change_failed") }));
     } finally { setLoading(false); }
   };
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* BACKDROP: no animation, visible instantly */}
-      <div
-        onClick={onClose}
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-      ></div>
+      <div onClick={onClose} className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
 
-      {/* MODAL: animated separately */}
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.25 }}
         className="mx-4 relative z-10 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-[480px] p-7"
       >
-        {/* Close Icon */}
         <button
           onClick={onClose}
           className="cursor-pointer absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition"
@@ -93,21 +89,19 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
           <FiX size={20} />
         </button>
 
-        {/* Heading */}
         <div className="flex items-center justify-center gap-3 mb-7">
           <div className="w-10 h-10 rounded-xl bg-[#748dff] flex items-center justify-center text-white shadow-lg">
             <FiLock />
           </div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">Change Password</h2>
+          <h2 className="text-2xl font-bold text-black dark:text-white">{t("change_password")}</h2>
         </div>
 
         {success ? (
           <SuccessCheck />
         ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Current */}
             <div className="relative">
-              <label className="block mb-1 text-sm font-medium dark:text-gray-300">Current Password</label>
+              <label className="block mb-1 text-sm font-medium dark:text-gray-300">{t("current_password")}</label>
               <input
                 type={showCurrent ? "text" : "password"}
                 value={currentPassword}
@@ -120,9 +114,8 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
               {errors.current && <p className="text-red-500 text-sm mt-1">{errors.current}</p>}
             </div>
 
-            {/* New */}
             <div className="relative">
-              <label className="block mb-1 text-sm font-medium dark:text-gray-300">New Password</label>
+              <label className="block mb-1 text-sm font-medium dark:text-gray-300">{t("new_password")}</label>
               <input
                 type={showNew ? "text" : "password"}
                 value={newPassword}
@@ -135,9 +128,8 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
               {errors.new && <p className="text-red-500 text-sm mt-1">{errors.new}</p>}
             </div>
 
-            {/* Confirm */}
             <div className="relative">
-              <label className="block mb-1 text-sm font-medium dark:text-gray-300">Confirm Password</label>
+              <label className="block mb-1 text-sm font-medium dark:text-gray-300">{t("confirm_password")}</label>
               <input
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
@@ -152,14 +144,13 @@ export default function ChangePasswordModal({ isOpen, onClose, userId }) {
 
             {errors.submit && <p className="text-red-500 text-sm text-center">{errors.submit}</p>}
 
-            {/* SAVE FULL WIDTH */}
             <button
               type="submit"
               disabled={loading}
               className=" drop-shadow-xl cursor-pointer w-full px-4 py-3 bg-[#748dff] hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg transition mt-4"
             >
               {loading && <LoadingSpinner size={18} color="#fff" />}
-              {loading ? "Changing..." : "Save Changes"}
+              {loading ? t("changing") : t("save_changes")}
             </button>
           </form>
         )}

@@ -1,20 +1,22 @@
 import React from "react";
 import LoadingSpinner from "../LoadingSpinner.jsx";
 import { FiAlertTriangle, FiX } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 
 const ConfirmDeleteModal = ({
   isOpen,
   onClose,
   onConfirm,
   loading = false,
-  title = "Delete Confirmation",
-  message = "This action cannot be undone."
+  titleKey = "delete_confirmation_title",
+  messageKey = "delete_confirmation_message"
 }) => {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      
       <div className="relative bg-white dark:bg-slate-900 w-full max-w-[480px] mx-4 rounded-2xl shadow-2xl p-7 animate-fadeIn">
 
         {/* CLOSE ICON */}
@@ -35,12 +37,12 @@ const ConfirmDeleteModal = ({
 
         {/* TITLE */}
         <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
-          {title}
+          {t(titleKey)}
         </h2>
 
         {/* MESSAGE */}
         <p className="text-center text-gray-600 dark:text-gray-300 mb-7">
-          {message}
+          {t(messageKey)}
         </p>
 
         {/* ACTIONS */}
@@ -50,7 +52,7 @@ const ConfirmDeleteModal = ({
             disabled={loading}
             className="cursor-pointer px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition"
           >
-            Cancel
+            {t("cancel")}
           </button>
 
           <button
@@ -58,7 +60,7 @@ const ConfirmDeleteModal = ({
             disabled={loading}
             className="cursor-pointer flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-red-500 text-white hover:bg-red-600 transition shadow-md"
           >
-            {loading ? <LoadingSpinner size={18} color="#fff" /> : "Yes, Delete"}
+            {loading ? <LoadingSpinner size={18} color="#fff" /> : t("yes_delete")}
           </button>
         </div>
 

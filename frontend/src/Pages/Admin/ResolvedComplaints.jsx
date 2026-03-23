@@ -6,10 +6,11 @@ import {
   AiOutlinePhone,
   AiOutlineCalendar,
   AiOutlineEye,
-  AiOutlineEdit
+  AiOutlineEdit,
+  AiOutlineDelete
 } from "react-icons/ai";
 import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiFilter, FiUser, FiLayers, FiPrinter } from "react-icons/fi";
+import { FiSearch, FiClock, FiX, FiFilter, FiUser, FiLayers, FiPrinter } from "react-icons/fi";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -17,6 +18,7 @@ import ViewResolvedComplaintModal from "../../Components/Admin/ViewResolvedCompl
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
 import UpdateResourcesCostModal from "../../Components/Admin/UpdateResourcesCostModal.jsx";
 import ResolvedComplaintPrint from "../../Components/Admin/ResolvedComplaintPrint.jsx";
+import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 // Helper
 const capitalizeWords = (str) =>
   str
@@ -41,11 +43,17 @@ const ResolvedComplaints = () => {
   const [viewMoreClicked, setViewMoreClicked] = useState(false);
   const [showUpdateResourcesModal, setShowUpdateResourcesModal] = useState(false);
   const [currentResources, setCurrentResources] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [complaintToDelete, setComplaintToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const getAllComplaints = useComplaintStore(
     (state) => state.getAllComplaints
   );
   const updateResolvedResources = useComplaintStore(state => state.updateResolvedResources);
+  const deleteResolvedComplaint = useComplaintStore(
+  state => state.deleteResolvedComplaint
+);
 
 
   const statusFilter = "resolved";
@@ -134,19 +142,19 @@ const ResolvedComplaints = () => {
               type="text"
               placeholder="Search Resolved Complaints..."
               onChange={(e) => debouncedSearch(e.target.value)}
-              className="w-72 pl-10 pr-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff]"
+              className="w-72 pl-10 pr-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
             />
           </div>
 
           {/* TYPE FILTER - WHOLE BOX CLICKABLE */}
           <div className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border  focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-white  cursor-pointer">
               <option value="All">Type</option>
               <option value="general">General</option>
               <option value="special">Special</option>
             </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none ">▼</span>
           </div>
         </div>
 
@@ -209,32 +217,41 @@ const ResolvedComplaints = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="mt-6 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <button
                       onClick={() => { setSelectedComplaint(c); setShowViewModal(true); }}
-                      className="cursor-pointer w-full flex justify-center items-center gap-2 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded-lg transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
+                      className="cursor-pointer flex justify-center items-center gap-2 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded-lg transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
                     >
-                      <AiOutlineEye /> View
+                      <AiOutlineEye /> 
                     </button>
 
                     <button
                       onClick={() => {
-                        setSelectedComplaint(c);              // set complaint
-                        setCurrentResources(c.resources || []); // set resources to edit
-                        setShowUpdateResourcesModal(true);    // open modal
+                        setSelectedComplaint(c);
+                        setCurrentResources(c.resources || []);
+                        setShowUpdateResourcesModal(true);
                       }}
-                      className="cursor-pointer w-full flex justify-center items-center gap-2 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded-lg transition dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200"
+                      className="cursor-pointer  flex justify-center items-center gap-2 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded-lg transition dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200"
                     >
-                      <AiOutlineEdit /> Edit
+                      <AiOutlineEdit /> 
                     </button>
 
                     <button
                       onClick={() => ResolvedComplaintPrint(c)?.handlePrint()}
-                      className="cursor-pointer w-full flex justify-center items-center gap-2 px-3 py-2 bg-[#f3e8ff] hover:bg-purple-200 text-[#6e11b0] rounded-lg transition dark:bg-transparent dark:border dark:border-[#6e11b0] dark:text-[#6e11b0] dark:hover:bg-purple-200"
+                      className="cursor-pointer  flex justify-center items-center gap-2 px-3 py-2 bg-[#f3e8ff] hover:bg-purple-200 text-[#6e11b0] rounded-lg transition dark:bg-transparent dark:border dark:border-[#6e11b0] dark:text-[#6e11b0] dark:hover:bg-purple-200"
                     >
-                      <FiPrinter /> Print
+                      <FiPrinter />
                     </button>
 
+                    <button
+                      onClick={() => {
+                        setComplaintToDelete(c);
+                        setShowDeleteModal(true);
+                      }}
+                      className="cursor-pointer flex justify-center items-center gap-2 px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition dark:bg-transparent dark:border dark:border-red-500 dark:text-red-500 dark:hover:bg-red-600 dark:hover:text-white"
+                    >
+                      <AiOutlineDelete size={18} />
+                    </button>
                   </div>
 
 
@@ -403,7 +420,28 @@ const ResolvedComplaints = () => {
           }
         }}
       />
-
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        loading={deleting}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setComplaintToDelete(null);
+        }}
+        onConfirm={async () => {
+  if (!complaintToDelete) return;
+  try {
+    setDeleting(true);
+    await deleteResolvedComplaint(complaintToDelete._id); // ✅ use correct function
+    setComplaints(prev => prev.filter(item => item._id !== complaintToDelete._id));
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setDeleting(false);
+    setShowDeleteModal(false);
+    setComplaintToDelete(null);
+  }
+}}
+      />
     </div>
   );
 };

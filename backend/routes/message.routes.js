@@ -1,0 +1,18 @@
+import { Router } from "express";
+import { sendMessage, getInbox, editMessage, deleteMessage, getAdminMessages, getUnreadCount, markAsRead, replyToMessage, editReply, deleteReply, softDeleteMessage } from "../controllers/message.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { isAdmin } from "../middlewares/isAdmin.middleware.js";
+const router = Router();
+
+router.route("/send").post(verifyJWT, sendMessage);
+router.route("/inbox").get(verifyJWT, getInbox);
+router.route("/edit/:messageId").put(verifyJWT, editMessage);
+router.route("/delete/:messageId").delete(verifyJWT, deleteMessage);
+router.route("/adminGetMessages").get(verifyJWT,isAdmin, getAdminMessages);
+router.route("/unread-count").get(verifyJWT, isAdmin, getUnreadCount);
+router.route("/read/:messageId").patch(verifyJWT, isAdmin, markAsRead);
+router.route("/admin/reply/:messageId").post(verifyJWT, isAdmin, replyToMessage);
+router.route("/admin/reply/edit/:replyId").put(verifyJWT, isAdmin, editReply);
+router.route("/admin/reply/delete/:replyId").delete(verifyJWT, isAdmin, deleteReply);
+router.route("/admin/delete/:messageId").patch(verifyJWT, isAdmin, softDeleteMessage);
+export default router;

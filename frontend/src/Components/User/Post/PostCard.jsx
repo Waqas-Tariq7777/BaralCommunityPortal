@@ -14,6 +14,13 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
   const sharePost = usePostStore((state) => state.sharePost);
   const isAdmin = useAuthStore((state) => state.isAdmin);
   const deletePost = usePostStore((state) => state.deletePost);
+  const [expanded, setExpanded] = useState(false);
+  const sanitizedContent = DOMPurify.sanitize(post.content || "");
+  const MAX_LENGTH = 300;
+  const isLongContent = sanitizedContent.length > MAX_LENGTH;
+  const previewContent = isLongContent && !expanded
+    ? sanitizedContent.slice(0, MAX_LENGTH) + "..."
+    : sanitizedContent;
 
   const [sharing, setSharing] = useState(false);
 
@@ -21,7 +28,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
   const [likesCount, setLikesCount] = useState(post.numberOfLikes || 0);
   const unsharePost = usePostStore((state) => state.unsharePost);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
 
   const [deleting, setDeleting] = useState(false);
 
@@ -113,7 +120,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
     return `${diffInYears} years ago`;
   };
 
-  const sanitizedContent = DOMPurify.sanitize(post.content || "");
+
 
   return (
     <>
@@ -174,10 +181,20 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
 
 
         {/* Post Content */}
-        <div
-          className="text-slate-700 dark:text-slate-300 mb-3 break-words"
-          dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-        />
+        <div className="text-slate-700 dark:text-slate-300 mb-3 break-words">
+          <div
+            dangerouslySetInnerHTML={{ __html: previewContent }}
+          />
+
+          {isLongContent && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="cursor-pointer mt-1 text-blue-500 hover:underline text-sm font-medium"
+            >
+              {expanded ? "See less" : "See more"}
+            </button>
+          )}
+        </div>
 
         {/* Post Images */}
         {post.images && post.images.length > 0 && (

@@ -149,4 +149,17 @@ getYearlyCategoryStats: async () => {
   }
 },
 
+getMessagesCount: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getMessagesCount`, {
+      withCredentials: true,
+    });
+
+    return res.data.data.totalMessages;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    return 0;
+  }
+},
 }));

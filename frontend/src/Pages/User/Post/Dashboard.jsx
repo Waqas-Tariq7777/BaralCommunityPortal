@@ -1,14 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { FiSearch, FiAlertCircle } from "react-icons/fi";
 import { FaRegMessage } from "react-icons/fa6";
+import { AiOutlineNotification } from "react-icons/ai";
 import { usePostStore } from "../../../Store/PostStore.js";
+import { useAuthStore } from "../../../Store/AuthStore.js";
 import PostCard from "../../../Components/User/Post/PostCard.jsx";
 import PostImageModal from "../../../Components/User/Post/PostImageModal.jsx";
 import LoadingSpinner from "../../../Components/LoadingSpinner.jsx";
 import { debounce } from "lodash";
-import { useAuthStore } from "../../../Store/AuthStore.js";
-import { AiOutlineNotification } from "react-icons/ai";
-
+import { useLanguageStore } from '../../../Store/LanguageStore.js';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const colors = [
@@ -18,7 +18,10 @@ const colors = [
   "from-pink-500 to-pink-400",
 ];
 
+import { useTranslation } from "react-i18next";
+
 const PostFeed = () => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
   const [lastId, setLastId] = useState(null);
@@ -27,6 +30,7 @@ const PostFeed = () => {
   const [modalImages, setModalImages] = useState(null);
   const [modalIndex, setModalIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const { language } = useLanguageStore();
 
   const loaderRef = useRef(null);
   const didInitialLoad = useRef(false);
@@ -118,97 +122,98 @@ const PostFeed = () => {
       {/* 🚨 IMPORTANT ANNOUNCEMENTS */}
       {!isAdmin && importantPosts.length > 0 && (
         <div className="mb-6 w-full border-2 border-[#748dff] mx-auto rounded-2xl p-4 overflow-hidden relative">
-          <h2 className="text-lg font-bold mb-3 flex items-center gap-2 text-[#748dff]">
+          <h2 dir={language === "ur" ? "rtl" : "ltr"} className="text-lg font-bold mb-3 flex items-center gap-2 text-[#748dff]">
             <AiOutlineNotification className="text-3xl text-[#748dff]" />
-            Important Announcements
+            {t("important_announcements")}
           </h2>
 
           <div className="relative overflow-hidden w-full">
+            <div
+              className={`flex gap-4 ${
+                importantPosts.length > 2 ? "marquee-track" : "justify-center"
+              }`}
+            >
+              {(importantPosts.length > 2 ? [...importantPosts, ...importantPosts] : importantPosts).map(
+                (post, idx) => {
+                  const color = colors[idx % colors.length];
 
-            {/* duplicated slides for seamless loop */}
-            <div className="flex gap-4 marquee-track">
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => scrollToPost(post._id)}
+                      className={`cursor-pointer flex-shrink-0 w-[420px] h-[110px] p-4 rounded-xl text-white transition-all duration-300 hover:scale-95 hover:shadow-2xl relative overflow-hidden bg-gradient-to-br ${color}`}
+                    >
+                      <div className="flex justify-between items-start h-full relative z-10">
+                        <div className="flex flex-col justify-between h-full pr-3">
+                          <p className="font-bold text-sm whitespace-normal break-all overflow-hidden line-clamp-2">
+                            {post.title?.replace(/<[^>]+>/g, "")}
+                          </p>
 
-              {[...importantPosts, ...importantPosts].map((post, idx) => {
-                const color = colors[idx % colors.length];
+                          <p className="text-xs break-words line-clamp-2">
+                            {post.content?.replace(/<[^>]+>/g, "")}
+                          </p>
 
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => scrollToPost(post._id)}
-                    className={`cursor-pointer flex-shrink-0 w-[420px] h-[110px] p-4 rounded-xl text-white transition-all duration-300 hover:scale-95 hover:shadow-2xl relative overflow-hidden bg-gradient-to-br ${color}`}
-                  >
-                    <div className="flex justify-between items-start h-full relative z-10">
-                      <div className="flex flex-col justify-between h-full pr-3">
-                        <p className="font-bold text-sm whitespace-normal break-all overflow-hidden line-clamp-2">
-                          {post.content?.replace(/<[^>]+>/g, "")}
-                        </p>
+                          <span className="text-[10px] opacity-80">
+                            {t("posted_recently")}
+                          </span>
+                        </div>
 
-                        <p className="text-xs break-words line-clamp-2">
-                          {post.content?.replace(/<[^>]+>/g, "")}
-                        </p>
-
-                        <span className="text-[10px] opacity-80">
-                          Posted recently
-                        </span>
+                        <AiOutlineNotification className="text-2xl opacity-80 flex-shrink-0" />
                       </div>
 
-                      <AiOutlineNotification className="text-2xl opacity-80 flex-shrink-0" />
+                      <span className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-20 animate-pulse rounded-xl"></span>
                     </div>
-
-                    <span className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-20 animate-pulse rounded-xl"></span>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           </div>
         </div>
       )}
 
       {/* Search */}
-<div className="flex items-center mb-6">
-  <div className="relative w-full xl:w-[850px] mx-auto">
-    <FiSearch className="absolute left-3 top-3 text-slate-400 dark:text-slate-300" />
-    <input
-      type="text"
-      placeholder="Search posts..."
-      value={search}
-      onChange={(e) => {
-        setSearch(e.target.value);
-        debouncedSearch(e.target.value);
-      }}
-      className="w-full pl-10 pr-4 py-2 rounded-xl border 
-      border-slate-300 dark:border-[#748dff]
-      bg-white dark:bg-slate-900
-      text-slate-800 dark:text-white
-      placeholder:text-slate-400 dark:placeholder:text-slate-300
-      focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff]
-      transition-colors duration-200"
-    />
-  </div>
-</div>
+      <div  className="flex items-center mb-6">
+        <div className="relative w-full xl:w-[850px] mx-auto">
+          <FiSearch  className="absolute left-3 top-3 text-slate-400 dark:text-slate-300" />
+          <input
+            type="text"
+            placeholder={t("search_Placeholder")}
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
+            className="w-full pl-10 pr-4 py-2 rounded-xl border 
+            border-slate-300 dark:border-[#748dff]
+            bg-white dark:bg-slate-900
+            text-slate-800 dark:text-white
+            placeholder:text-slate-400 dark:placeholder:text-slate-300
+            focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff]
+            transition-colors duration-200"
+          />
+        </div>
+      </div>
 
       {/* Posts */}
-      <div className="w-full flex flex-col items-center px-3 py-6">
-        {posts.map((post) => (
-          <div
-            key={post._id}
-            ref={(el) => (postRefs.current[post._id] = el)}
-            className="w-full"
-          >
-            <PostCard post={post} onImageClick={openModal} />
-          </div>
-        ))}
-      </div>
+     <div className="w-full flex flex-col items-center  sm:px-3 py-6">
+  {posts.map((post) => (
+    <div
+      key={post._id}
+      ref={(el) => (postRefs.current[post._id] = el)}
+      className="w-full max-w-[95%] "
+    >
+      <PostCard post={post} onImageClick={openModal} />
+    </div>
+  ))}
+</div>
 
       {initialLoading && <LoadingSpinner size={40} color="#748dff" />}
 
       {!initialLoading && posts.length === 0 && (
         <div className="flex flex-col items-center justify-center mt-24 text-slate-500 dark:text-slate-400">
           <FaRegMessage className="text-indigo-400 text-4xl mb-3" />
-          <p className="text-base font-medium">No posts found</p>
-          <p className="text-sm text-slate-400 mt-1">
-            Try adjusting your search or check back later.
-          </p>
+          <p className="text-base font-medium">{t("no_posts_found_title")}</p>
+          <p className="text-sm text-slate-400 mt-1">{t("no_posts_found_subtitle")}</p>
         </div>
       )}
 
@@ -221,10 +226,8 @@ const PostFeed = () => {
       {!hasMore && posts.length > 0 && !loadingMore && (
         <div className="flex flex-col items-center text-slate-500 py-6 space-y-2">
           <FaRegMessage className="text-3xl text-[#748dff]" />
-          <p className="text-lg font-medium">You have reached the last post</p>
-          <p className="text-sm text-slate-400">
-            Check back later for new updates from the community
-          </p>
+          <p className="text-lg font-medium">{t("last_post_title")}</p>
+          <p className="text-sm text-slate-400">{t("last_post_subtitle")}</p>
         </div>
       )}
 

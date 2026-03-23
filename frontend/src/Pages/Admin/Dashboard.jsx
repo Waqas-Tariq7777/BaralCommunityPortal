@@ -13,46 +13,60 @@ import {
   AiOutlineMessage,
   AiOutlineNotification,
 } from "react-icons/ai";
-
+import { useMessageStore } from "../../Store/MessageStore";
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
-const { getUsersCount } = useAdminStore();
+  const { getUsersCount } = useAdminStore();
+  const { unreadCount, fetchUnreadCount } = useMessageStore();
+  useEffect(() => {
+    fetchUnreadCount();
+  }, []);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const count = await getUsersCount();
+        setTotalUsers(count);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const [totalAnnouncements, setTotalAnnouncements] = useState(0);
+  const { getAnnouncementsCount } = useAdminStore();
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      const count = await getAnnouncementsCount();
+      setTotalAnnouncements(count);
+    };
+    fetchAnnouncements();
+  }, []);
+
+  const [pendingComplaints, setPendingComplaints] = useState(0);
+  const [resolvedComplaints, setResolvedComplaints] = useState(0);
+  const { getComplaintStats } = useAdminStore();
+
+  useEffect(() => {
+    const fetchComplaintStats = async () => {
+      const stats = await getComplaintStats();
+      setPendingComplaints(stats.pending);
+      setResolvedComplaints(stats.resolved);
+    };
+    fetchComplaintStats();
+  }, []);
+
+  const [totalMessages, setTotalMessages] = useState(0);
+const { getMessagesCount } = useAdminStore();
 
 useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const count = await getUsersCount();
-      setTotalUsers(count);
-    } catch (error) {
-      console.error(error);
-    }
+  const fetchMessages = async () => {
+    const count = await getMessagesCount();
+    setTotalMessages(count);
   };
-
-  fetchUsers();
-}, []);
-
-const [totalAnnouncements, setTotalAnnouncements] = useState(0);
-const { getAnnouncementsCount } = useAdminStore();
-
-useEffect(() => {
-  const fetchAnnouncements = async () => {
-    const count = await getAnnouncementsCount();
-    setTotalAnnouncements(count);
-  };
-  fetchAnnouncements();
-}, []);
-
-const [pendingComplaints, setPendingComplaints] = useState(0);
-const [resolvedComplaints, setResolvedComplaints] = useState(0);
-const { getComplaintStats } = useAdminStore();
-
-useEffect(() => {
-  const fetchComplaintStats = async () => {
-    const stats = await getComplaintStats();
-    setPendingComplaints(stats.pending);
-    setResolvedComplaints(stats.resolved);
-  };
-  fetchComplaintStats();
+  fetchMessages();
 }, []);
 
   return (
@@ -75,7 +89,7 @@ useEffect(() => {
         />
         <StatCard
           title="Announcements"
-           value={totalAnnouncements}
+          value={totalAnnouncements}
           icon={<AiOutlineNotification className="dark:text-white" />}
           color="from-purple-500 to-purple-400"
           className="dark:bg-slate-800 dark:text-white"
@@ -87,53 +101,61 @@ useEffect(() => {
           color="from-green-500 to-green-400"
           className="dark:bg-slate-800 dark:text-white"
         />
-        <StatCard
-          title="Messages"
-          value="15"
-          icon={<AiOutlineMessage className="dark:text-white" />}
-          color="from-pink-500 to-pink-400"
-          className="dark:bg-slate-800 dark:text-white"
-        />
+        <div className="relative">
+          <StatCard
+            title="Messages"
+            value={totalMessages}
+            icon={<AiOutlineMessage className="dark:text-white" />}
+            color="from-pink-500 to-pink-400"
+            className="dark:bg-slate-800 dark:text-white"
+          />
+
+          {unreadCount > 0 && (
+            <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full shadow-md animate-pulse">
+              {unreadCount} Unread
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Quick Actions */}
       <div>
-  <h3 className="font-semibold mb-4 dark:text-white">Quick Actions</h3>
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-    <QuickAction
-      label="Add New User"
-      icon={<AiOutlineUser className="dark:text-white" />}
-      color="border-blue-500"
-      to="/admin/addUsers"
-    />
-    <QuickAction
-      label="View Users"
-      icon={<AiOutlineUser className="dark:text-white" />}
-      color="border-green-500"
-      to="/admin/viewUsers"
-    />
-    <QuickAction
-      label="Pending Complaints"
-      icon={<AiOutlineClockCircle className="dark:text-white" />}
-      color="border-yellow-500"
-      to="/admin/viewAllComplaints"
-    />
-    <QuickAction
-      label="Add Announcement"
-      icon={<AiOutlineNotification className="dark:text-white" />}
-      color="border-purple-500"
-      to="/admin/addPost"
-    />
-  </div>
-</div>
+        <h3 className="font-semibold mb-4 dark:text-white">Quick Actions</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <QuickAction
+            label="Add New User"
+            icon={<AiOutlineUser className="dark:text-white" />}
+            color="border-blue-500"
+            to="/admin/addUsers"
+          />
+          <QuickAction
+            label="View Users"
+            icon={<AiOutlineUser className="dark:text-white" />}
+            color="border-green-500"
+            to="/admin/viewUsers"
+          />
+          <QuickAction
+            label="Pending Complaints"
+            icon={<AiOutlineClockCircle className="dark:text-white" />}
+            color="border-yellow-500"
+            to="/admin/viewAllComplaints"
+          />
+          <QuickAction
+            label="Add Announcement"
+            icon={<AiOutlineNotification className="dark:text-white" />}
+            color="border-purple-500"
+            to="/admin/addPost"
+          />
+        </div>
+      </div>
       {/* User Chart */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserStatsChart />
         <ResolvedComplaintsChart />
       </div>
       <div className="mt-6">
-  <CategoryComplaintChart />
-</div>
+        <CategoryComplaintChart />
+      </div>
     </div>
   );
 }

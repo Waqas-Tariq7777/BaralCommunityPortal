@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.routes.js'
 import userRoutes from './routes/user.routes.js'
 import complaintRoutes from './routes/complaint.routes.js'
 import postRoutes from './routes/post.routes.js'
+import messageRoutes from './routes/message.routes.js'
 const app = express();
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/complaint', complaintRoutes)
 app.use('/api/post', postRoutes)
+app.use('/api/message', messageRoutes)
 app.get("/test", (req,res)=>{
   res.send("Server working");
 });

@@ -8,7 +8,7 @@ import { Post } from '../models/post.model.js';
 import { Complaint } from "../models/complaint.model.js";
 import mongoose from "mongoose"; // make sure mongoose is imported at the top
 import { UserDeletionLog } from "../models/userDeletionLog.model.js";
-
+import { Message } from "../models/message.model.js"; 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
 
@@ -147,7 +147,16 @@ const getUsersCount = asyncHandler(async (req, res) => {
 });
 
 const getAnnouncementsCount = asyncHandler(async (req, res) => {
-  const count = await Post.countDocuments({ isImportant: true });
+  const now = new Date();
+  const sevenDaysAgo = new Date(now);
+  sevenDaysAgo.setDate(now.getDate() - 7);
+
+  // Count only important posts created in the last 7 days
+  const count = await Post.countDocuments({
+    isImportant: true,
+    createdAt: { $gte: sevenDaysAgo }
+  });
+
   return res.status(200).json({ count });
 });
 
@@ -230,74 +239,87 @@ const getMonthlyComplaintStats = asyncHandler(async (req, res) => {
 const getYearlyCategoryStats = asyncHandler(async (req, res) => {
   const now = new Date();
   const year = now.getFullYear();
-
   const startOfYear = new Date(year, 0, 1);
   const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
 
-  // STEP 1: Get all unique categories
-  const categories = await Complaint.distinct("reason");
-
-  // STEP 2: Aggregate data
+  // STEP 1: Aggregate complaints per month per normalized category
   const stats = await Complaint.aggregate([
-    {
-      $match: {
-        createdAt: { $gte: startOfYear, $lte: endOfYear },
-      },
-    },
+    { $match: { createdAt: { $gte: startOfYear, $lte: endOfYear } } },
     {
       $group: {
         _id: {
           month: { $month: "$createdAt" },
-          category: "$reason",
+          category: { $toLower: { $trim: { input: "$reason" } } }
         },
         count: { $sum: 1 },
       },
     },
   ]);
 
-  // STEP 3: Initialize structure (12 months)
+  // STEP 2: Merge certain categories
+  const categoryMap = {
+    "special service": "special", // merge into "special"
+    "special request": "special", // merge into "special"
+    // add more mappings here if needed
+  };
+
+  // STEP 3: Build final structured data
+  const formatted = {};
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
   ];
 
-  const formatted = {};
-
-  categories.forEach(cat => {
-    formatted[cat] = new Array(12).fill(0);
-  });
-
-  // STEP 4: Fill data
   stats.forEach(item => {
+    let category = item._id.category;
+    if (categoryMap[category]) category = categoryMap[category]; // map similar categories
+
+    if (!formatted[category]) formatted[category] = new Array(12).fill(0);
     const monthIndex = item._id.month - 1;
-    const category = item._id.category;
-
-    if (!formatted[category]) {
-      formatted[category] = new Array(12).fill(0);
-    }
-
-    formatted[category][monthIndex] = item.count;
+    formatted[category][monthIndex] += item.count; // add counts if merged
   });
 
-  // STEP 5: Current Month Data
+  // Current month stats
   const currentMonth = now.getMonth();
-
   const currentMonthStats = {};
-  categories.forEach(cat => {
-    currentMonthStats[cat] = formatted[cat][currentMonth] || 0;
-  });
+  Object.keys(formatted).forEach(cat => currentMonthStats[cat] = formatted[cat][currentMonth] || 0);
 
   res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        months,
-        categoryData: formatted,
-        currentMonthStats,
-      },
-      "Yearly category stats fetched successfully"
-    )
+    new ApiResponse(200, {
+      months,
+      categoryData: formatted,
+      currentMonthStats
+    }, "Yearly category stats fetched successfully")
   );
 });
 
-export { addUser, uploadUserViaCSV, getUsers, updateUsers, deleteUsers, getUsersCount, getAnnouncementsCount, getComplaintStats, getUserStats, getMonthlyComplaintStats, getYearlyCategoryStats};
+const getMessagesCount = asyncHandler(async (req, res) => {
+  const adminId = req.user._id;
+
+  // Only count messages that:
+  // 1. are not replies
+  // 2. are not soft-deleted for this admin
+  const totalMessages = await Message.countDocuments({
+    isReply: false,
+    deletedForAdmin: { $ne: adminId }
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, { totalMessages }, "Total messages fetched successfully")
+  );
+});
+
+export {
+  addUser,
+  uploadUserViaCSV,
+  getUsers,
+  updateUsers,
+  deleteUsers,
+  getUsersCount,
+  getAnnouncementsCount,
+  getComplaintStats,
+  getUserStats,
+  getMonthlyComplaintStats,
+  getYearlyCategoryStats,
+  getMessagesCount // ✅ add this
+};

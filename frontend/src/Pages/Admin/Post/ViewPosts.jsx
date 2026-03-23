@@ -123,13 +123,15 @@ const PostFeed = () => {
               setSearch(value);
               debouncedSearch(value); // ✅ now works
             }}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none"
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 
+  bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 
+  focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff]"
           />
         </div>
       </div>
 
       {/* Posts */}
-      <div className="w-full flex flex-col items-center px-3 py-6">
+      <div className="w-full flex flex-col items-center sm:px-3 py-6">
         {posts.map((post) => (
           <PostCard
             key={post._id}

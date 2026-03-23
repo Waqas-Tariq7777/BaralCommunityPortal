@@ -66,23 +66,11 @@ export default function Sidebar({ open, setOpen }) {
             ]
         },
         {
-            name: "Announcements",
-            icon: AiOutlineNotification,
-            base: "/admin/announcements",
-            sub: [
-                { name: "all", icon: AiOutlineNotification },
-                { name: "add", icon: AiOutlineProfile },
-                { name: "history", icon: AiOutlineHistory }
-            ]
-        },
-        {
             name: "Messages",
             icon: AiOutlineMessage,
-            base: "/admin/messages",
             sub: [
-                { name: "inbox", icon: AiOutlineInbox },
-                { name: "sent", icon: AiOutlineProfile },
-                { name: "archived", icon: AiOutlineHistory }
+                { name: "Community Inbox", path: "/admin/inbox", icon: AiOutlineInbox },
+                { name: "Guest Inbox", icon: AiOutlineProfile },
             ]
         },
     ];

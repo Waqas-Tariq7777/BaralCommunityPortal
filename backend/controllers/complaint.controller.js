@@ -124,6 +124,7 @@ const getAllComplaints = asyncHandler(async (req, res) => {
           { email: { $regex: search, $options: "i" } },
           { userName: { $regex: search, $options: "i" } },
           { mobileNumber: { $regex: search, $options: "i" } },
+          { houseNumber: { $regex: search, $options: "i" } },
         ],
       }
     : {};
@@ -262,6 +263,28 @@ const updateResolvedResources = asyncHandler(async (req, res) => {
   );
 });
 
+// Delete resolved complaint (admin)
+const deleteResolvedComplaint = asyncHandler(async (req, res) => {
+  const { complaintId } = req.params;
+
+  if (!complaintId) throw new ApiError(400, "Complaint ID is required");
+
+  // Find complaint
+  const complaint = await Complaint.findById(complaintId);
+  if (!complaint) throw new ApiError(404, "Complaint not found");
+
+  if (complaint.status !== "resolved") {
+    throw new ApiError(400, "Only resolved complaints can be deleted");
+  }
+
+  // Delete complaint
+  await complaint.deleteOne();
+
+  res.status(200).json(
+    new ApiResponse(200, null, "Resolved complaint deleted successfully")
+  );
+});
+
 export {
   submitComplaint,
   getUserComplaints,
@@ -271,5 +294,6 @@ export {
   updateComplaintStatus,
   resolvedComplaint,
   updateResolvedResources,
-  markComplaintAsRead
+  markComplaintAsRead, 
+  deleteResolvedComplaint
 };

@@ -109,13 +109,13 @@ const ComplaintManagement = () => {
           {/* SEARCH */}
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <input type="text" placeholder="Search Complaints..." onChange={e => debouncedSearch(e.target.value)} className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all" />
+            <input type="text" placeholder="Search Complaints..." onChange={e => debouncedSearch(e.target.value)} className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all" />
           </div>
 
           {/* TYPE FILTER */}
           <div className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
               <option value="All">Type</option>
               <option value="general">General</option>
               <option value="special">Special</option>
@@ -126,7 +126,7 @@ const ComplaintManagement = () => {
           {/* STATUS FILTER */}
           <div className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
               <option value="Any">Status</option>
               <option value="pending">Pending</option>
               <option value="in progress">In Progress</option>

@@ -5,8 +5,10 @@ import { toast } from "react-toastify";
 import { FiBell, FiCamera, FiMail, FiUser, FiPhone, FiHome, FiCalendar, FiBriefcase } from "react-icons/fi";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
 import ChangePasswordModal from "../../Components/User/ChangePasswordModal.jsx";
+import { useTranslation } from "react-i18next";
 
 export default function UserProfile() {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const fileInputRef = useRef(null);
   const uploadProfilePicture = useUserStore((state) => state.uploadProfilePicture);
@@ -14,14 +16,13 @@ export default function UserProfile() {
   const [previewUrl, setPreviewUrl] = useState(user?.profilePicture?.url);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
-  // UPLOAD PROFILE PICTURE 
   const handleProfilePictureChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const userId = user?._id || user?.id;
     if (!userId) {
-      toast.error("User ID not found");
+      toast.error(t("user_id_not_found"));
       return;
     }
 
@@ -35,24 +36,22 @@ export default function UserProfile() {
       setPreviewUrl(res.data.url);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to upload profile picture");
+      toast.error(t("profile_upload_failed"));
     } finally {
       setUploading(false);
     }
   };
 
   if (!user) {
-    return <div className="text-gray-500 dark:text-gray-400 text-center mt-10">No user logged in</div>;
+    return <div className="text-gray-500 dark:text-gray-400 text-center mt-10">{t("no_user_logged_in")}</div>;
   }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 p-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">My Profile</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white text-center">{t("my_profile")}</h1>
 
-      {/* USER PROFILE */}
       <div className="bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] rounded-lg shadow-md p-6 space-y-6">
 
-        {/* PROFILE HEADER */}
         <div className="flex flex-col sm:flex-row items-center justify-center sm:items-center sm:justify-start space-y-4 sm:space-y-0 sm:space-x-6">
           <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0">
             {uploading ? (
@@ -64,7 +63,6 @@ export default function UserProfile() {
             )}
 
             <input type="file" accept="image/*" ref={fileInputRef} onChange={handleProfilePictureChange} className="hidden" />
-
             <button onClick={() => fileInputRef.current.click()} className="cursor-pointer absolute bottom-0 right-0 bg-[#748dff] hover:bg-indigo-500 text-white p-2 rounded-full border border-white transition">
               <FiCamera />
             </button>
@@ -76,34 +74,30 @@ export default function UserProfile() {
               <FiMail /> {user.email}
             </p>
           </div>
-
         </div>
 
-        {/* USER DETAILS GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-         {[
-  { icon: FiUser, label: "Name", value: user.userName },
-  { icon: FiMail, label: "Email", value: user.email },
-  { icon: FiPhone, label: "Mobile Number", value: user.mobileNumber || "N/A" },
-  { icon: FiHome, label: "House Number", value: user.houseNumber || "N/A" },
-  { icon: FiBriefcase, label: "Designation", value: user.designation || "N/A" },
-  { icon: FiCalendar, label: "Joined", value: user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : "N/A" },
-].map((item, idx) => (
-  <div key={idx} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3">
-    <item.icon className="text-gray-500 dark:text-[#748dff]" />
-    <div className="min-w-0">
-      <p className="text-sm text-gray-500">{item.label}</p>
-      <p className="font-medium text-gray-900 dark:text-white truncate">{item.value}</p>
-    </div>
-  </div>
-))}
-
+          {[
+            { icon: FiUser, label: t("name"), value: user.userName },
+            { icon: FiMail, label: t("email"), value: user.email },
+            { icon: FiPhone, label: t("mobile_number"), value: user.mobileNumber || t("not_available") },
+            { icon: FiHome, label: t("house_number"), value: user.houseNumber || t("not_available") },
+            { icon: FiBriefcase, label: t("designation"), value: user.designation || t("not_available") },
+            { icon: FiCalendar, label: t("joined"), value: user.joinedAt ? new Date(user.joinedAt).toLocaleDateString() : t("not_available") },
+          ].map((item, idx) => (
+            <div key={idx} className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3">
+              <item.icon className="text-gray-500 dark:text-[#748dff]" />
+              <div className="min-w-0">
+                <p className="text-sm text-gray-500">{item.label}</p>
+                <p className="font-medium text-gray-900 dark:text-white truncate">{item.value}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* CHANGE PASSWORD */}
         <div className="text-center mt-4">
           <button onClick={() => setIsPasswordModalOpen(true)} className="cursor-pointer drop-shadow-xl bg-[#748dff] hover:bg-indigo-500 text-white px-6 py-2 rounded-lg shadow-md transition-all hover:scale-105">
-            Change Password
+            {t("change_password")}
           </button>
         </div>
 

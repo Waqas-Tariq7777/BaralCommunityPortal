@@ -6,9 +6,7 @@ import { useAuthStore } from "../../Store/AuthStore.js";
 import { useEffect } from "react";
 import { MdForum } from "react-icons/md";
 import { FiList } from "react-icons/fi";
-import { BsFillFilePostFill } from "react-icons/bs";
 import {
-    AiOutlineDashboard,
     AiOutlineUser,
     AiOutlineFileText,
     AiOutlineNotification,
@@ -17,16 +15,17 @@ import {
     AiOutlineDown,
     AiOutlineClose,
     AiOutlineProfile,
-    AiOutlineCheckCircle,
     AiOutlineHistory,
     AiOutlineInbox,
     AiOutlineLogout
 } from "react-icons/ai";
+import { useTranslation } from "react-i18next";
 
 export default function Sidebar({ open, setOpen }) {
     const [activeMenu, setActiveMenu] = useState(null);
     const location = useLocation();
     const authStore = useAuthStore();
+    const { t } = useTranslation();
 
     const handleSignOut = () => {
         authStore.logoutUser();
@@ -39,43 +38,27 @@ export default function Sidebar({ open, setOpen }) {
         }
     }, []);
 
-
     const menuItems = [
         {
-            name: "Community Hub",
+            name: t("community_hub"),
             icon: MdForum,
             base: "/user/communityHub"
         },
         {
-            name: "Complaints",
+            name: t("complaints"),
             icon: AiOutlineFileText,
             sub: [
-                { name: "Submit Complaint", path: "/user/submitComplaint", icon: AiOutlineFileText },
-                { name: "Complaint List", path: "/user/viewComplaintList", icon: FiList },
+                { name: t("submit_complaint"), path: "/user/submitComplaint", icon: AiOutlineFileText },
+                { name: t("complaint_list"), path: "/user/viewComplaintList", icon: FiList },
             ]
         },
         {
-            name: "Announcements",
-            icon: AiOutlineNotification,
-            base: "/admin/announcements",
-            sub: [
-                { name: "all", icon: AiOutlineNotification },
-                { name: "add", icon: AiOutlineProfile },
-                { name: "history", icon: AiOutlineHistory }
-            ]
-        },
-        {
-            name: "Messages",
+            name: t("messages"),
             icon: AiOutlineMessage,
-            base: "/admin/messages",
-            sub: [
-                { name: "inbox", icon: AiOutlineInbox },
-                { name: "sent", icon: AiOutlineProfile },
-                { name: "archived", icon: AiOutlineHistory }
-            ]
+            base: "/user/inbox"
         },
         {
-            name: "My Profile",
+            name: t("my_profile"),
             icon: AiOutlineUser,
             base: "/user/myProfile"
         },
@@ -83,14 +66,13 @@ export default function Sidebar({ open, setOpen }) {
 
     const sidebarContent = (
         <div className="flex flex-col h-full p-4 dark:bg-slate-900">
-            {/* Logo + title */}
             <div className="flex items-center justify-between gap-3 mb-8">
                 <div className="flex items-center gap-3">
                     <img src={Logo} alt="logo" className="w-12 h-12" />
                     {(open || window.innerWidth < 768) && (
                         <div>
-                            <h1 className="text-lg font-bold text-[#748dff] uppercase">Baral Portal</h1>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Community System</p>
+                            <h1 className="text-lg font-bold text-[#748dff] uppercase">{t("baral_portal")}</h1>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{t("community_system")}</p>
                         </div>
                     )}
                 </div>
@@ -102,7 +84,6 @@ export default function Sidebar({ open, setOpen }) {
                 </button>
             </div>
 
-            {/* Menu */}
             <nav className="flex flex-col gap-2">
                 {menuItems.map((item, i) => {
                     const Icon = item.icon;
@@ -115,7 +96,6 @@ export default function Sidebar({ open, setOpen }) {
                         <div key={i}>
                             {hasSub ? (
                                 <>
-                                    {/* Button with dropdown */}
                                     <button
                                         onClick={() => setActiveMenu(activeMenu === i ? null : i)}
                                         className={`cursor-pointer flex items-center justify-between w-full p-3 rounded-lg font-semibold transition
@@ -130,7 +110,6 @@ export default function Sidebar({ open, setOpen }) {
                                         {open && (activeMenu === i ? <AiOutlineDown /> : <AiOutlineRight />)}
                                     </button>
 
-                                    {/* Submenu */}
                                     {open && activeMenu === i && (
                                         <div className="ml-11 mt-1 flex flex-col gap-1">
                                             {item.sub.map((sub, idx) => {
@@ -153,7 +132,6 @@ export default function Sidebar({ open, setOpen }) {
                                     )}
                                 </>
                             ) : (
-                                // Direct NavLink (Dashboard, Complaints without sub)
                                 <NavLink
                                     to={item.base}
                                     className={`flex items-center gap-3 w-full p-3 rounded-lg font-semibold transition
@@ -170,29 +148,25 @@ export default function Sidebar({ open, setOpen }) {
                 })}
             </nav>
 
-            {/* Sign Out Button at the end */}
             <button
                 className=" cursor-pointer mt-auto flex items-center gap-2 px-4 py-3 font-medium text-[#f87171] rounded-md transition transform hover:scale-105 hover:ring-1 hover:ring-[#f87171] hover:bg-[#fee2e2]"
                 onClick={handleSignOut}
             >
-                <AiOutlineLogout size={20} /> {open && "Sign Out"}
+                <AiOutlineLogout size={20} /> {open && t("sign_out")}
             </button>
         </div>
     );
 
     return (
         <>
-            {/* Desktop Sidebar */}
             <motion.aside
                 animate={{ width: open ? 260 : 80 }}
                 transition={{ duration: 0.25 }}
                 className="hidden md:flex flex-col bg-white dark:bg-slate-900 dark:border-r dark:border-[#748dff] shadow-lg min-h-screen"
-
             >
                 {sidebarContent}
             </motion.aside>
 
-            {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
                 {open && (
                     <motion.div
@@ -205,7 +179,6 @@ export default function Sidebar({ open, setOpen }) {
                         {sidebarContent}
                     </motion.div>
                 )}
-
             </AnimatePresence>
         </>
     );

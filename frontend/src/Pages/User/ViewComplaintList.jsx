@@ -9,11 +9,14 @@ import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
 import { FiSearch, FiClock, FiFilter, FiLayers } from "react-icons/fi";
 import { useAuthStore } from "../../Store/AuthStore.js";
+import { useTranslation } from "react-i18next";
+import { useLanguageStore } from '../../Store/LanguageStore.js';
 
 // capitalize helper
 const capitalizeWords = (str) => str ? str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "";
 
 const ViewComplaintList = () => {
+  const { t } = useTranslation();
   const [complaints, setComplaints] = useState([]);
   const [lastId, setLastId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
@@ -31,22 +34,20 @@ const ViewComplaintList = () => {
   const [complaintToDelete, setComplaintToDelete] = useState(null);
   const [viewMoreClicked, setViewMoreClicked] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const getUserComplaints = useComplaintStore(state => state.getUserComplaints);
   const deleteComplaint = useComplaintStore(state => state.deleteComplaint);
   const user = useAuthStore(state => state.user);
-
+  const { language } = useLanguageStore();
 
   const fetchComplaints = useCallback(
     async ({ reset = false } = {}) => {
       if (initialLoading || loadingMore) return;
 
       if (reset && complaints.length === 0) {
-        setInitialLoading(true);   // ONLY first load
+        setInitialLoading(true);
       } else {
-        setLoadingMore(true);      // View More & View Less
+        setLoadingMore(true);
       }
-
 
       try {
         const res = await getUserComplaints({
@@ -65,8 +66,6 @@ const ViewComplaintList = () => {
         );
 
         setLastId(data.length ? data[data.length - 1]._id : null);
-
-        // hasMore logic stays intact
         setHasMore(
           typeof meta.hasMore === "boolean"
             ? meta.hasMore
@@ -74,26 +73,14 @@ const ViewComplaintList = () => {
         );
 
       } catch (err) {
-        console.error("Error fetching complaints:", err);
+        console.error(t("error_fetching_complaints"), err);
       } finally {
         setInitialLoading(false);
         setLoadingMore(false);
       }
     },
-    [
-      getUserComplaints,
-      lastId,
-      search,
-      typeFilter,
-      statusFilter,
-      initialLoading,
-      loadingMore,
-      complaints.length
-    ]
-
+    [getUserComplaints, lastId, search, typeFilter, statusFilter, initialLoading, loadingMore, complaints.length, t]
   );
-
-
 
   const debouncedSearch = useCallback(debounce(value => {
     setLastId(null); setHasMore(true); setComplaints([]); setSearch(value);
@@ -103,31 +90,24 @@ const ViewComplaintList = () => {
 
   const handleViewLess = () => { setComplaints([]); setLastId(null); setHasMore(true); fetchComplaints({ reset: true }); };
 
-  // handle deleting complaint
   const handleDeleteComplaint = async () => {
     if (!complaintToDelete) return;
     try {
       setDeleteLoading(true);
       await deleteComplaint(complaintToDelete._id);
-
-      // Remove from local state
       setComplaints(prev => prev.filter(c => c._id !== complaintToDelete._id));
-
-      // Refetch one more complaint to fill empty space if there are more
       if (hasMore) fetchComplaints();
-
       setShowDeleteModal(false);
     } catch (err) {
-      console.error("Failed to delete complaint:", err);
+      console.error(t("error_deleting_complaint"), err);
     } finally {
       setDeleteLoading(false);
     }
   };
 
-
   return (
     <div className="min-h-screen p-6 dark:bg-slate-900 transition-colors duration-300">
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Complaint Management</h1>
+      <h1 dir={language === "ur" ? "rtl" : "ltr"} className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">{t("complaint_management")}</h1>
 
       {/* SEARCH & FILTERS & VIEW TOGGLE */}
       <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-3 sm:space-y-0">
@@ -138,23 +118,23 @@ const ViewComplaintList = () => {
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
             <input
               type="text"
-              placeholder="Search by reason/category..."
+              placeholder={t("search_placeholder")}
               onChange={e => debouncedSearch(e.target.value)}
-              className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
+              className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
             />
           </div>
 
           {/* TYPE FILTER */}
-          <div className="relative">
+          <div dir={language === "ur" ? "rtl" : "ltr"} className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
             <select
               value={typeFilter}
               onChange={e => setTypeFilter(e.target.value)}
-              className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
+              className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
             >
-              <option value="All">Type</option>
-              <option value="general">General</option>
-              <option value="special">Special</option>
+              <option value="All">{t("type_filter")}</option>
+              <option value="general">{t("general")}</option>
+              <option value="special">{t("special")}</option>
             </select>
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               ▼
@@ -162,18 +142,18 @@ const ViewComplaintList = () => {
           </div>
 
           {/* STATUS FILTER */}
-          <div className="relative">
+          <div dir={language === "ur" ? "rtl" : "ltr"} className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
+              className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
             >
-              <option value="Any">Status</option>
-              <option value="pending">Pending</option>
-              <option value="resolved">Resolved</option>
-              <option value="in progress">In Progress</option>
-              <option value="rejected">Rejected</option>
+              <option value="Any">{t("status_filter")}</option>
+              <option value="pending">{t("pending")}</option>
+              <option value="resolved">{t("resolved")}</option>
+              <option value="in progress">{t("in_progress")}</option>
+              <option value="rejected">{t("rejected")}</option>
             </select>
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
               ▼
@@ -195,7 +175,7 @@ const ViewComplaintList = () => {
         </div>
       ) : complaints.length === 0 ? (
         <div className="text-center mt-20 text-gray-500">
-          No complaints found.
+          {t("no_complaints_found")}
         </div>
       ) : (<>
 
@@ -210,7 +190,6 @@ const ViewComplaintList = () => {
                     <span className="truncate flex-1">{c.userId.email}</span>
                   </p>
 
-
                   <p className="flex text-sm items-center gap-2"><AiOutlinePhone className="text-green-300 text-lg dark:text-[#748dff]" /> {c.userId?.mobileNumber}</p>
                   <p className="flex text-sm items-center gap-2"><AiOutlineCalendar className="text-pink-300 text-lg dark:text-[#748dff]" /> {moment(c.createdAt).format("MMMM D, YYYY")}</p>
 
@@ -219,15 +198,15 @@ const ViewComplaintList = () => {
 
                     {/* TYPE PILL */}
                     <div className="flex items-center gap-2">
-                      <FiLayers className="text-lg text-[#6e11b0]" /> {/* icon outside pill, larger size */}
+                      <FiLayers className="text-lg text-[#6e11b0]" />
                       <span className="px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">
-                        {capitalizeWords(c.complaintType)}
+                        {t(c.complaintType)}
                       </span>
                     </div>
 
                     {/* STATUS PILL */}
                     <div className="flex items-center gap-2">
-                      <FiClock className="text-lg text-[#894b00]" /> {/* default icon color, will update below */}
+                      <FiClock className="text-lg text-[#894b00]" />
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-semibold ${c.status.toLowerCase() === "pending"
                           ? "bg-[#fef9c2] text-[#894b00]"
@@ -240,13 +219,13 @@ const ViewComplaintList = () => {
                                 : "bg-gray-200 text-gray-700"
                           }`}
                       >
-                        {capitalizeWords(c.status)}
+                        {t(c.status.replace(" ", "_"))}
                       </span>
                     </div>
 
                   </div>
-                  <div>
-                    <p className="flex items-center gap-2 mt-6 text-sm "> Reason:</p>
+                  <div dir={language === "ur" ? "rtl" : "ltr"} >
+                    <p className="flex items-center gap-2 mt-6 text-sm "> {t("reason")}:</p>
                     <p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason}</p>
                   </div>
                 </div>
@@ -257,7 +236,7 @@ const ViewComplaintList = () => {
                       onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }}
                       className="cursor-pointer w-full flex justify-center items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
                     >
-                      <AiOutlineEye /> View
+                      <AiOutlineEye /> {t("view")}
                     </button>
                   ) : (
                     <>
@@ -265,13 +244,13 @@ const ViewComplaintList = () => {
                         onClick={() => { setSelectedComplaint(c); setShowViewModal(true) }}
                         className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition  dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-indigo-400 dark:hover:text-white"
                       >
-                        <AiOutlineEye /> View
+                        <AiOutlineEye /> {t("view")}
                       </button>
                       <button
                         onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true) }}
                         className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded transition  dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200 "
                       >
-                        <AiOutlineEdit /> Edit
+                        <AiOutlineEdit /> {t("edit")}
                       </button>
                       <button
                         onClick={() => { setComplaintToDelete(c); setShowDeleteModal(true); }}
@@ -288,17 +267,17 @@ const ViewComplaintList = () => {
           </div>
         ) : (
           /* TABLE VIEW */
-          <div className="overflow-x-auto bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-[#748dff]">
+          <div  className="overflow-x-auto bg-white dark:bg-gray-900 shadow-lg rounded-2xl border border-gray-200 dark:border-[#748dff]">
             <table className="w-full text-sm text-left text-gray-700 dark:text-gray-200">
-              <thead className="bg-blue-50 dark:bg-indigo-400 text-gray-800 dark:text-gray-200 uppercase text-xs font-semibold sticky top-0">
+              <thead  className="bg-blue-50 dark:bg-indigo-400 text-gray-800 dark:text-gray-200 uppercase text-xs font-semibold sticky top-0">
                 <tr>
-                  <th className="px-6 py-3 rounded-tl-2xl">User</th>
-                  <th className="px-6 py-3">Contact</th>
-                  <th className="px-6 py-3">Type</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3">Reason</th>
-                  <th className="px-6 py-3">Submitted</th>
-                  <th className="px-6 py-3 text-center rounded-tr-2xl">Actions</th>
+                  <th className="px-6 py-3 rounded-tl-2xl">{t("user")}</th>
+                  <th className="px-6 py-3">{t("contact")}</th>
+                  <th className="px-6 py-3">{t("type_filter")}</th>
+                  <th className="px-6 py-3">{t("status_filter")}</th>
+                  <th className="px-6 py-3">{t("reason")}</th>
+                  <th className="px-6 py-3">{t("submitted")}</th>
+                  <th className="px-6 py-3 text-center rounded-tr-2xl">{t("actions")}</th>
                 </tr>
               </thead>
 
@@ -311,7 +290,6 @@ const ViewComplaintList = () => {
                       : "bg-gray-50 dark:bg-gray-900"
                       } border-t transition hover:bg-blue-50 dark:hover:bg-gray-800 dark:border-t-[#748dff]`}
                   >
-
                     {/* USER */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -327,18 +305,17 @@ const ViewComplaintList = () => {
                     </td>
 
                     {/* CONTACT */}
-                    <td className="px-6 py-4 max-w-[200px]"> {/* optional max width for control */}
+                    <td className="px-6 py-4 max-w-[200px]">
                       <div className="flex flex-col text-sm min-w-0">
                         <span className="font-medium truncate">{c.userId?.email}</span>
                         <span className="text-gray-500 truncate">{c.userId?.mobileNumber}</span>
                       </div>
                     </td>
 
-
                     {/* TYPE */}
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">
-                        {capitalizeWords(c.complaintType)}
+                        {t(c.complaintType)}
                       </span>
                     </td>
 
@@ -354,8 +331,8 @@ const ViewComplaintList = () => {
                               : "bg-[#fee2e2] text-[#991b1b]"
                           }`}
                       >
-                        {capitalizeWords(c.status)}
-                      </span>
+                        {t(c.status.replace(" ", "_"))}
+                                            </span>
                     </td>
 
                     {/* REASON */}
@@ -385,14 +362,12 @@ const ViewComplaintList = () => {
                           >
                             <AiOutlineEye className="w-5 h-5" />
                           </button>
-
                           <button
                             onClick={() => { setSelectedComplaint(c); setShowUpdateModal(true); }}
                             className="cursor-pointer p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition dark:bg-transparent dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200"
                           >
                             <AiOutlineEdit className="w-5 h-5" />
                           </button>
-
                           <button
                             onClick={() => { setComplaintToDelete(c); setShowDeleteModal(true); }}
                             className="cursor-pointer p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition dark:bg-transparent dark:border dark:border-[#e91721] dark:text-[#e91721] dark:hover:bg-red-200"
@@ -408,7 +383,6 @@ const ViewComplaintList = () => {
               </tbody>
             </table>
           </div>
-
         )}
       </>)}
 
@@ -424,17 +398,17 @@ const ViewComplaintList = () => {
               className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
             >
               {loadingMore && <LoadingSpinner size={18} color="#fff" />}
-              {loadingMore ? "Loading..." : "View More"}
+              {loadingMore ? t("loading") : t("view_more")}
             </button>
           )}
 
           {!hasMore && complaints.length > 12 && viewMoreClicked && (
             <button
               onClick={async () => {
-                setIsCollapsing(true);        // 1️⃣ keep button + show loader
+                setIsCollapsing(true);
                 await fetchComplaints({ reset: true });
-                setIsCollapsing(false);       // 2️⃣ stop loader
-                setViewMoreClicked(false);    // 3️⃣ NOW hide button
+                setIsCollapsing(false);
+                setViewMoreClicked(false);
               }}
               disabled={loadingMore || isCollapsing}
               className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
@@ -442,23 +416,34 @@ const ViewComplaintList = () => {
               {(loadingMore || isCollapsing) && (
                 <LoadingSpinner size={18} color="#fff" />
               )}
-              {(loadingMore || isCollapsing) ? "Loading..." : "View Less"}
+              {(loadingMore || isCollapsing) ? t("loading") : t("view_less")}
             </button>
-
-
           )}
         </div>
       )}
 
-
-
-
       {/* MODALS */}
-      <ViewComplaintModal isOpen={showViewModal} complaint={selectedComplaint} onClose={() => setShowViewModal(false)} />
-      <EditComplaintModal isOpen={showUpdateModal} complaint={selectedComplaint} onClose={() => setShowUpdateModal(false)} onSuccess={() => fetchComplaints({ reset: true })} />
-      <ConfirmDeleteModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} onConfirm={handleDeleteComplaint} loading={deleteLoading} title="Delete Complaint?" message={`Are you sure you want to delete this complaint from ${complaintToDelete?.userId?.email}? This action cannot be undone.`} />
+      <ViewComplaintModal
+        isOpen={showViewModal}
+        complaint={selectedComplaint}
+        onClose={() => setShowViewModal(false)}
+      />
+      <EditComplaintModal
+        isOpen={showUpdateModal}
+        complaint={selectedComplaint}
+        onClose={() => setShowUpdateModal(false)}
+        onSuccess={() => fetchComplaints({ reset: true })}
+      />
+      <ConfirmDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteComplaint}
+        loading={deleteLoading}
+        title={t("delete_complaint")}
+        message={t("delete_complaint_message", { email: complaintToDelete?.userId?.email })}
+      />
     </div>
-  )
-}
+  );
+};
 
 export default ViewComplaintList;

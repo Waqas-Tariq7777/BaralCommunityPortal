@@ -103,7 +103,7 @@ const UserManagement = () => {
             type="text"
             placeholder="Search users..."
             onChange={(e) => debouncedSearch(e.target.value)}
-            className="border rounded px-4 py-2 pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#748dff] transition-all"
+            className="border rounded px-4 py-2 pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
           />
         </div>
 

@@ -392,8 +392,6 @@ deletePost: async (postId) => {
       { withCredentials: true }
     );
 
-    toast.success("Post deleted successfully!");
-
     // Remove deleted post from local store
     const posts = get().posts.filter(p => p._id !== postId);
     set({ posts });

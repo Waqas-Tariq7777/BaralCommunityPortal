@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { deleteComplaint, getAllComplaints, getUserComplaints, markComplaintAsRead, resolvedComplaint, submitComplaint, updateComplaintStatus, updateResolvedResources, updateUserComplaint } from "../controllers/complaint.controller.js";
+import { deleteComplaint, deleteResolvedComplaint, getAllComplaints, getUserComplaints, markComplaintAsRead, resolvedComplaint, submitComplaint, updateComplaintStatus, updateResolvedResources, updateUserComplaint } from "../controllers/complaint.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { isAdmin } from "../middlewares/isAdmin.middleware.js";
 
@@ -14,4 +14,5 @@ router.route('/admin/updateStatus/:complaintId').put(verifyJWT, isAdmin, updateC
 router.route('/admin/resolvedComplaints/:complaintId').put(verifyJWT, isAdmin, resolvedComplaint)
 router.route('/admin/updateResources/:complaintId').put(verifyJWT, isAdmin, updateResolvedResources)
 router.route('/admin/markAsRead/:complaintId').patch(verifyJWT, isAdmin, markComplaintAsRead)
+router.route('/admin/deleteResolved/:complaintId').delete(verifyJWT, isAdmin, deleteResolvedComplaint);
 export default router;

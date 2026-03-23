@@ -33,21 +33,27 @@ export default function CategoryComplaintChart() {
     const fetchData = async () => {
       const data = await getYearlyCategoryStats();
 
-      // 🔹 Filter out "special" from all data
-      const filteredCurrentMonthStats = Object.fromEntries(
-        Object.entries(data.currentMonthStats).filter(([key]) => key !== "special")
-      );
+      // 🔹 Aggregate category counts per month
+      const categoryData = {};
+      Object.entries(data.categoryData).forEach(([cat, monthArray]) => {
+        if (cat === "special") return; // skip special
+        categoryData[cat] = monthArray.map((val) => Number(val) || 0);
+      });
 
-      const filteredCategoryData = Object.fromEntries(
-        Object.entries(data.categoryData).filter(([key]) => key !== "special")
-      );
+      // 🔹 Aggregate current month stats and remove "special"
+      const currentMonthStats = {};
+      Object.entries(data.currentMonthStats).forEach(([cat, count]) => {
+        if (cat === "special") return;
+        currentMonthStats[cat] = Number(count) || 0;
+      });
 
       setDataState({
         months: data.months,
-        currentMonthStats: filteredCurrentMonthStats,
-        categoryData: filteredCategoryData,
+        currentMonthStats,
+        categoryData,
       });
     };
+
     fetchData();
   }, []);
 
@@ -61,6 +67,7 @@ export default function CategoryComplaintChart() {
   const currentDate = new Date();
   const year = currentDate.getFullYear();
 
+  // 🔹 Find highest complaint category
   const maxIndex = values.indexOf(Math.max(...values));
   const topCategory = categories[maxIndex];
   const topValue = values[maxIndex];
@@ -94,12 +101,12 @@ export default function CategoryComplaintChart() {
   };
 
   // Slider Progress Data
-  const monthValues = Object.keys(categoryData).map(cat => categoryData[cat][sliderMonthIndex]);
+  const monthValues = categories.map((cat) => categoryData[cat][sliderMonthIndex]);
   const maxValue = Math.max(...monthValues, 1);
   const colors = ["#748dff", "#22c55e", "#f59e0b", "#ef4444", "#06b6d4", "#a855f7"];
 
-  const handlePrev = () => setSliderMonthIndex(prev => (prev === 0 ? 11 : prev - 1));
-  const handleNext = () => setSliderMonthIndex(prev => (prev === 11 ? 0 : prev + 1));
+  const handlePrev = () => setSliderMonthIndex((prev) => (prev === 0 ? 11 : prev - 1));
+  const handleNext = () => setSliderMonthIndex((prev) => (prev === 11 ? 0 : prev + 1));
 
   return (
     <motion.div
@@ -178,7 +185,7 @@ export default function CategoryComplaintChart() {
           </div>
 
           {/* Progress Bars */}
-          {Object.keys(categoryData).map((cat, index) => {
+          {categories.map((cat, index) => {
             const value = categoryData[cat][sliderMonthIndex];
             const percentage = (value / maxValue) * 100;
 
