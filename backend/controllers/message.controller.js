@@ -167,7 +167,25 @@ const getAdminMessages = asyncHandler(async (req, res) => {
     .populate("parentMessage")
     .sort({ createdAt: -1 });
 
-  res.status(200).json(new ApiResponse(200, messages, "Admin messages fetched"));
+    // 🔥 ADD THIS BLOCK
+  const messagesWithStatus = await Promise.all(
+    messages.map(async (msg) => {
+      if (msg.isReply) return msg;
+
+      const adminReply = await Message.exists({
+  parentMessage: msg._id,
+  isReply: true,
+  sender: adminId,
+});
+
+      return {
+        ...msg.toObject(),
+        hasAdminReply: !!adminReply, // ✅ important
+      };
+    })
+  );
+
+  res.status(200).json(new ApiResponse(200, messagesWithStatus, "Admin messages fetched"));
 });
 // 6️⃣ Get unread messages count (Admin)
 // 6️⃣ Get unread messages count (Admin) - Corrected

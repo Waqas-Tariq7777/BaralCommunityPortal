@@ -1,11 +1,14 @@
+// Dashboard.jsx
 import StatCard from "../../Components/Admin/StatCard";
 import QuickAction from "../../Components/Admin/QuickAction";
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAdminStore } from "../../Store/AdminStore";
+import { useMessageStore } from "../../Store/MessageStore";
+import { useGuestStore } from "../../Store/GuestStore";
 import UserStatsChart from "../../Components/Admin/UserStatsChart";
 import ResolvedComplaintsChart from "../../Components/Admin/ResolvedComplaintChart";
 import CategoryComplaintChart from "../../Components/Admin/CategoryChart";
+
 import {
   AiOutlineUser,
   AiOutlineClockCircle,
@@ -13,14 +16,13 @@ import {
   AiOutlineMessage,
   AiOutlineNotification,
 } from "react-icons/ai";
-import { useMessageStore } from "../../Store/MessageStore";
+
 export default function Dashboard() {
+  // ================= Users =================
   const [totalUsers, setTotalUsers] = useState(0);
-  const { getUsersCount } = useAdminStore();
-  const { unreadCount, fetchUnreadCount } = useMessageStore();
-  useEffect(() => {
-    fetchUnreadCount();
-  }, []);
+  const { getUsersCount, getAnnouncementsCount, getComplaintStats, getMessagesCount } =
+    useAdminStore();
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -30,45 +32,69 @@ export default function Dashboard() {
         console.error(error);
       }
     };
-
     fetchUsers();
   }, []);
 
+  // ================= Announcements =================
   const [totalAnnouncements, setTotalAnnouncements] = useState(0);
-  const { getAnnouncementsCount } = useAdminStore();
-
   useEffect(() => {
     const fetchAnnouncements = async () => {
-      const count = await getAnnouncementsCount();
-      setTotalAnnouncements(count);
+      try {
+        const count = await getAnnouncementsCount();
+        setTotalAnnouncements(count);
+      } catch (error) {
+        console.error(error);
+      }
     };
     fetchAnnouncements();
   }, []);
 
+  // ================= Complaints =================
   const [pendingComplaints, setPendingComplaints] = useState(0);
   const [resolvedComplaints, setResolvedComplaints] = useState(0);
-  const { getComplaintStats } = useAdminStore();
 
   useEffect(() => {
     const fetchComplaintStats = async () => {
-      const stats = await getComplaintStats();
-      setPendingComplaints(stats.pending);
-      setResolvedComplaints(stats.resolved);
+      try {
+        const stats = await getComplaintStats();
+        setPendingComplaints(stats.pending);
+        setResolvedComplaints(stats.resolved);
+      } catch (error) {
+        console.error(error);
+      }
     };
     fetchComplaintStats();
   }, []);
 
+  // ================= Messages =================
   const [totalMessages, setTotalMessages] = useState(0);
-const { getMessagesCount } = useAdminStore();
+  const { unreadCount, fetchUnreadCount } = useMessageStore();
 
-useEffect(() => {
-  const fetchMessages = async () => {
-    const count = await getMessagesCount();
-    setTotalMessages(count);
-  };
-  fetchMessages();
-}, []);
+  useEffect(() => {
+    fetchUnreadCount();
+    const fetchMessages = async () => {
+      try {
+        const count = await getMessagesCount();
+        setTotalMessages(count);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchMessages();
+  }, []);
 
+  // ================= Guest Messages =================
+  const { unreadGuestCount, getUnreadCount } = useGuestStore();
+
+  useEffect(() => {
+    getUnreadCount();
+  }, []);
+
+  // ================= Combined Unread Pill =================
+  const totalUnread = unreadCount + unreadGuestCount;
+  const [showUnreadBreakdown, setShowUnreadBreakdown] = useState(false);
+
+  // ================= Render =================
   return (
     <div className="space-y-8">
       {/* Stats */}
@@ -101,6 +127,8 @@ useEffect(() => {
           color="from-green-500 to-green-400"
           className="dark:bg-slate-800 dark:text-white"
         />
+
+        {/* Messages + Combined Unread */}
         <div className="relative">
           <StatCard
             title="Messages"
@@ -110,10 +138,28 @@ useEffect(() => {
             className="dark:bg-slate-800 dark:text-white"
           />
 
-          {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full shadow-md animate-pulse">
-              {unreadCount} Unread
-            </span>
+          {/* Combined unread pill */}
+          {totalUnread > 0 && (
+            <button
+              onClick={() => setShowUnreadBreakdown(!showUnreadBreakdown)}
+              className="cursor-pointer absolute top-2 right-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full shadow-md animate-pulse"
+            >
+              {totalUnread} Unread
+            </button>
+          )}
+
+          {/* Breakdown popup */}
+          {showUnreadBreakdown && (
+            <div className="absolute top-12 right-2 w-48 p-3 bg-gradient-to-br from-pink-500 to-purple-500 text-white rounded-xl shadow-lg z-50 ring-1 ring-white/20">
+              <p className="flex justify-between items-center mb-2">
+                <span className="font-semibold">Community Inbox</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-full font-medium">{unreadCount}</span>
+              </p>
+              <p className="flex justify-between items-center">
+                <span className="font-semibold">Guest Inbox</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-full font-medium">{unreadGuestCount}</span>
+              </p>
+            </div>
           )}
         </div>
       </div>
@@ -148,7 +194,8 @@ useEffect(() => {
           />
         </div>
       </div>
-      {/* User Chart */}
+
+      {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <UserStatsChart />
         <ResolvedComplaintsChart />

@@ -14,6 +14,7 @@ const AdminInbox = () => {
     editReply,
     deleteReply,
     softDeleteMessage,
+    markMessageAsRead,
   } = useMessageStore();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -89,6 +90,29 @@ const AdminInbox = () => {
     });
   };
 
+  // Handle Reply + Mark as Read
+  const handleReply = async (msgId) => {
+    if (replyText.trim() === "") return;
+    await replyToMessage(msgId, replyText, () => {
+      setReplyText("");
+      setActiveReplyId(null);
+      fetchAdminMessages(searchTerm, searchDate);
+    });
+  };
+
+  // Handle manual mark as read
+  const handleMarkAsRead = async (msgId) => {
+    await markMessageAsRead(msgId, () => {
+      // update local state immediately
+      setShowReplies((prev) => ({ ...prev })); // optional if replies visible
+      useMessageStore.setState((state) => ({
+        messages: state.messages.map((msg) =>
+          msg._id === msgId ? { ...msg, hasAdminReply: true, read: true } : msg
+        ),
+      }));
+    });
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       {/* Header */}
@@ -154,8 +178,18 @@ const AdminInbox = () => {
                   <img
                     src={msg.sender?.profilePicture?.url || "/default.png"}
                     alt="profile"
+                    loading="lazy"
                     className="w-12 h-12 rounded-full object-cover border-2 border-[#748dff]"
                   />
+                  {/* Unread Pill + Mark as Read */}
+                  {/* Unread Pill + Mark as Read */}
+                  {!msg.read && !msg.hasAdminReply && (
+                    <div className="absolute -top-1 right-3 flex gap-1 items-center">
+                      <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full shadow">
+                        Unread
+                      </span>
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -199,13 +233,7 @@ const AdminInbox = () => {
                         className="flex-1 p-2 border rounded resize-none dark:text-white border-gray-300 dark:border-slate-600 focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff]"
                       />
                       <button
-                        onClick={() =>
-                          replyToMessage(msg._id, replyText, () => {
-                            setReplyText("");
-                            setActiveReplyId(null);
-                            fetchAdminMessages(searchTerm, searchDate);
-                          })
-                        }
+                        onClick={() => handleReply(msg._id)}
                         className="bg-[#748dff] cursor-pointer text-white px-4 py-2 rounded"
                       >
                         Send
@@ -304,6 +332,15 @@ const AdminInbox = () => {
 
                   {/* Soft Delete Message Button */}
                   <div className="flex justify-end mt-2">
+                    {!msg.read && !msg.hasAdminReply && (
+                      <button
+                        onClick={() => handleMarkAsRead(msg._id)}
+                        className=" text-green-400 text-sm px-3 py-1 rounded hover:underline cursor-pointer"
+                        title="Mark as read"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDeleteMessageClick(msg._id)}
                       className="text-red-500 cursor-pointer text-sm hover:underline"
@@ -340,4 +377,4 @@ const AdminInbox = () => {
   );
 };
 
-export default AdminInbox;  
+export default AdminInbox;

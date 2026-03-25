@@ -3,7 +3,8 @@ import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { Complaint } from "../models/complaint.model.js";
 import { sendComplaintConfirmation } from "../utils/NodeMailer.js";
-
+import { sendStatusUpdateEmail } from '../utils/NodeMailer.js';
+import { sendResolvedComplaintEmail } from '../utils/NodeMailer.js';
 // Submit a complaint
 const submitComplaint = asyncHandler(async (req, res) => {
   const { complaintType, category, message } = req.body;
@@ -189,6 +190,11 @@ const updateComplaintStatus = asyncHandler(async (req, res) => {
 
   if (!complaint) throw new ApiError(404, "Complaint not found");
 
+  // ✅ Send email to user about status update
+if (complaint.userId?.email) {
+  sendStatusUpdateEmail(complaint.userId.email, complaint.userId.userName, status);
+}
+
   res.status(200).json(
     new ApiResponse(200, complaint, "Status updated successfully")
   );
@@ -224,7 +230,9 @@ const resolvedComplaint = asyncHandler(async (req, res) => {
   if (!complaint) {
     throw new ApiError(404, "Complaint not found");
   }
-
+if (complaint.userId?.email) {
+  sendResolvedComplaintEmail(complaint.userId.email, complaint.userId.userName, resources);
+}
   res.status(200).json(
     new ApiResponse(200, complaint, "Complaint resolved successfully")
   );

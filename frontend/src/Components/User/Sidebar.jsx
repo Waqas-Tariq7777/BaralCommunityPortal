@@ -55,7 +55,7 @@ export default function Sidebar({ open, setOpen }) {
         {
             name: t("messages"),
             icon: AiOutlineMessage,
-            base: "/user/inbox"
+            base: "/user/communityInbox"
         },
         {
             name: t("my_profile"),

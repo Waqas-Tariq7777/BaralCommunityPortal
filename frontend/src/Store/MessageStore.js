@@ -130,13 +130,14 @@ replyToMessage: async (messageId, replyText, callback) => {
   try {
     set({ loading: true });
 
+    // Send reply
     const res = await axios.post(
       `${baseUrl}/api/message/admin/reply/${messageId}`,
       { message: replyText },
       { withCredentials: true }
     );
 
-    toast.success(res.data.message || "Reply sent");
+    toast.success(res.data.message || "Reply sent and marked as read");
     if (callback) callback();
 
     return res.data.data;
@@ -208,4 +209,26 @@ softDeleteMessage: async (messageId, callback) => {
     set({ loading: false });
   }
 },
+
+markMessageAsRead: async (messageId, callback) => {
+  try {
+    set({ loading: true });
+    const res = await axios.patch(
+      `${baseUrl}/api/message/read/${messageId}`,
+      {},
+      { withCredentials: true }
+    );
+
+    toast.success(res.data.message || "Message marked as read");
+    if (callback) callback();
+    return res.data.data;
+  } catch (err) {
+    const msg = err?.response?.data?.message || err.message;
+    toast.error(msg);
+    throw new Error(msg);
+  } finally {
+    set({ loading: false });
+  }
+},
+
 }));

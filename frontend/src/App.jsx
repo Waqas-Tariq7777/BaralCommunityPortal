@@ -29,13 +29,14 @@ import Inbox from './Pages/User/Inbox.jsx';
 import AdminInbox from './Pages/Admin/Inbox.jsx';
 import SessionExpired from './Pages/SessionExpire.jsx';
 import Chatbot from './Pages/User/Chatbot.jsx';
+import AdminGuestMessages from './Pages/Admin/GuestInbox.jsx';
+import { useAuthStore } from "./Store/AuthStore.js";
 function App() {
-
   const dark = useThemeStore((state) => state.dark);
   const location = useLocation();
 
+  const { user, isAdmin } = useAuthStore(); // get user info from auth store
   const isAdminRoute = location.pathname.startsWith("/admin");
-
 
   useEffect(() => {
     if (dark) document.documentElement.classList.add("dark");
@@ -44,8 +45,10 @@ function App() {
 
   return (
     <>
-    {!isAdminRoute && <LanguageSwitcher />}
-    {!isAdminRoute && <Chatbot />}
+      {/* Only show for non-admin users */}
+      {!isAdmin && <LanguageSwitcher />}
+      {!isAdmin && <Chatbot />}
+
       <ToastContainer
         position="top-right"
         autoClose={2000}
@@ -53,8 +56,9 @@ function App() {
         closeOnClick
         pauseOnHover
         draggable
-        theme="colored"   // 👈 THIS is important
+        theme="colored"
       />
+
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path='/about' element={<About />} />
@@ -69,10 +73,9 @@ function App() {
             <Route path='/user/myProfile' element={<MyProfile />} />
             <Route path='/user/submitComplaint' element={<SubmitComplaint />} />
             <Route path='/user/viewComplaintList' element={<ViewComplaintList />} />
-            <Route path='/user/inbox' element={<Inbox />} />
+            <Route path='/user/communityInbox' element={<Inbox />} />
           </Route>
         </Route>
-
 
         <Route element={<ProtectedAdminRoutes />}>
           <Route element={<AdminLayout />}>
@@ -83,12 +86,13 @@ function App() {
             <Route path="/admin/resolvedComplaints" element={<ResolvedComplaints />} />
             <Route path="/admin/addPost" element={<AddPost />} />
             <Route path="/admin/viewPosts" element={<ViewPosts />} />
-            <Route path="/admin/inbox" element={<AdminInbox />} />
+            <Route path="/admin/communityinbox" element={<AdminInbox />} />
+            <Route path="/admin/guestInbox" element={<AdminGuestMessages />} />
           </Route>
         </Route>
       </Routes>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

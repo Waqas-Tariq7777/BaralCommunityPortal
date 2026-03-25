@@ -69,8 +69,8 @@ export default function Sidebar({ open, setOpen }) {
             name: "Messages",
             icon: AiOutlineMessage,
             sub: [
-                { name: "Community Inbox", path: "/admin/inbox", icon: AiOutlineInbox },
-                { name: "Guest Inbox", icon: AiOutlineProfile },
+                { name: "Community Inbox", path: "/admin/communityinbox", icon: AiOutlineInbox },
+                { name: "Guest Inbox", path: "/admin/guestInbox", icon: AiOutlineProfile },
             ]
         },
     ];

@@ -173,5 +173,17 @@
   "viewReplies": "ریپلائی دیکھیں",
   "hideReplies": "ریپلائی ہائیڈ کریں",
   "Password_invalid": "پاس ورڈ غلط ہے۔",
-  "Email_incorrect": "ای میل غلط ہے"
+  "Email_incorrect": "ای میل غلط ہے",
+  "contact_hero_text": "ہم مدد کے لیے یہاں ہیں۔ کسی بھی سپورٹ، فیڈ بیک یا سوالات کے لیے ہم سے رابطہ کریں۔",
+  "submit_help_request": "مدد کی درخواست جمع کریں",
+  "required_fields_text": "نیچے فارم پُر کریں۔ * والے فیلڈز لازمی ہیں۔",
+  "detail": "تفصیلات",
+  "select_reason": "وجہ منتخب کریں",
+  "technical_issue": "تکنیکی مسئلہ",
+  "account_support": "اکاؤنٹ سپورٹ",
+  "feedback": "فیڈ بیک",
+  "others": "دیگر",
+  "submit_request": "درخواست جمع کریں",
+  "message_length": "پیغام کم از کم 20 حروف پر مشتمل ہونا چاہیے",
+  "reason_required": "براہ کرم وجہ منتخب کریں"
 }

@@ -1,28 +1,66 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from "framer-motion";
 import Header from '../Components/Header.jsx'
+import Footer from '../Components/Footer.jsx';
+import LoginPopup from "../Components/LoginPopup.jsx";
+import { useAuthStore } from "../Store/AuthStore.js";
+import { useLanguageStore } from '../Store/LanguageStore.js';
+import { useTranslation } from "react-i18next";
+
 import WapdaLogo from '../assets/images/wapda_logo_bg.png'
 import LegacyImg from "../assets/images/colony-1.jpeg";
 import VisionImg from "../assets/images/colony-2.jpeg";
 import MissionImg from "../assets/images/colony-3.webp";
+
 import { FiAward, FiEye, FiStar } from "react-icons/fi";
 import { GoDotFill } from "react-icons/go";
 import { CiCircleInfo } from "react-icons/ci";
 import { MdKeyboardArrowDown } from "react-icons/md";
-import { useState } from 'react';
-import Footer from '../Components/Footer.jsx';
-import { useAuthStore } from "../Store/AuthStore.js";
-import LoginPopup from "../Components/LoginPopup.jsx";
-import { useTranslation } from "react-i18next";
-import { useLanguageStore } from '../Store/LanguageStore.js';
+
 export default function Home() {
   const [openLogin, setOpenLogin] = useState(false);
   const authStore = useAuthStore();
   const { t } = useTranslation();
   const { language } = useLanguageStore();
 
+  // Generate multiple falling stars
+  const stars = Array.from({ length: 15 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100, // random horizontal position
+    delay: Math.random() * 5, // random start delay
+    duration: 3 + Math.random() * 3, // random fall duration
+    size: 5 + Math.random() * 3 // random star size
+  }));
+
   return (
     <>
+      {/* Falling Stars Container */}
+      <div className="fixed inset-0 pointer-events-none z-40">
+        {stars.map(star => (
+          <motion.div
+            key={star.id}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: "110vh", opacity: [0, 1, 0] }}
+            transition={{
+              delay: star.delay,
+              duration: star.duration,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: `${star.left}%`,
+              width: star.size,
+              height: star.size,
+              borderRadius: "50%",
+              backgroundColor: "#748dff",
+              boxShadow: `0 0 ${star.size}px #748dff`
+            }}
+          />
+        ))}
+      </div>
+
       {/* Hero Section */}
       <div className="relative">
         <div className="absolute inset-0 z-0">
@@ -68,7 +106,7 @@ export default function Home() {
 
       {/* Community Services Section */}
       <motion.section
-      dir={language === "ur" ? "rtl" : "ltr"}
+        dir={language === "ur" ? "rtl" : "ltr"}
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
@@ -178,6 +216,7 @@ export default function Home() {
 
         </div>
       </motion.section>
+
       <Footer />
       <LoginPopup open={openLogin} onClose={() => setOpenLogin(false)} />
     </>

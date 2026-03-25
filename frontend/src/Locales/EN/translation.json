@@ -171,5 +171,17 @@
   "viewReplies": "View Replies",
   "hideReplies": "Hide Replies",
   "Password_invalid": "Password is Incorrect",
-  "Email_incorrect": "Email is Incorrect"
+  "Email_incorrect": "Email is Incorrect",
+  "contact_hero_text": "We're here to help. Reach out to us for any support, feedback, or queries.",
+  "submit_help_request": "Submit a Help Request",
+  "required_fields_text": "Fill out the form below. Fields marked with * are required.",
+  "detail": "Detail",
+  "select_reason": "Select a reason",
+  "technical_issue": "Technical Issue",
+  "account_support": "Account Support",
+  "feedback": "Feedback",
+  "others": "Others",
+  "submit_request": "Submit Request",
+  "message_length": "Message must be at least 20 characters",
+  "reason_required": "Please select a reason"
 }
