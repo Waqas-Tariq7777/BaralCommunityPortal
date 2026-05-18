@@ -4,6 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import connectDB from "./DB/connect.js";
+import morgan from "morgan";
+
 
 // Routes
 import adminRoutes from './routes/admin.routes.js';
@@ -13,6 +15,8 @@ import complaintRoutes from './routes/complaint.routes.js';
 import postRoutes from './routes/post.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import guestRoutes from './routes/guest.routes.js';
+import chatbotRoutes from './routes/chatbot.routes.js';
+
 
 // Load environment variables
 dotenv.config({ path: "./.env" });
@@ -38,10 +42,12 @@ app.use(
 );
 
 // Middleware
-app.use(express.json({ limit: "16kb" }));
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
+app.use(morgan("dev"));
 app.set('json spaces', 2);
+
 
 // Routes
 app.use('/api/admin', adminRoutes);
@@ -51,6 +57,8 @@ app.use('/api/complaint', complaintRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/message', messageRoutes);
 app.use('/api/guest', guestRoutes);
+app.use('/api/chatbot', chatbotRoutes);
+
 
 // Test route
 app.get("/test", (req, res) => {

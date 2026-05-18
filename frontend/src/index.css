@@ -1,3 +1,50 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+.markdown-content p {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-left: 1.25rem;
+  margin-bottom: 0.5rem;
+  list-style-type: disc;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-content strong {
+  font-weight: 700;
+}
+
+.markdown-content.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.markdown-content.rtl ul, .markdown-content.rtl ol {
+  margin-left: 0;
+  margin-right: 1.25rem;
+}
+
+.markdown-content code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+}
+
+.dark .markdown-content code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
