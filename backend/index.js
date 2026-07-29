@@ -3,7 +3,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import connectDB from "./DB/connect.js";
+import mongoose from "mongoose";
 import morgan from "morgan";
 
 
@@ -43,7 +43,7 @@ app.use(
 
 // Middleware
 app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "256kb" }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 app.set('json spaces', 2);
@@ -78,8 +78,9 @@ app.use((err, req, res, next) => {
 // Connect to MongoDB and start server
 const port = process.env.PORT || 4000;
 
-connectDB()
-  .then(() => {
+mongoose.connect(process.env.MONGODB_URI)
+  .then((connectionInstance) => {
+    console.log("MONGODB Connected Successfully !! Host:", connectionInstance.connection.host);
     app.listen(port, () => {
       console.log("Server is successfully running on port:", port);
     });

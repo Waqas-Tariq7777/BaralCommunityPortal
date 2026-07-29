@@ -33,7 +33,8 @@ fetchMessages: async (search = "", date = "") => {
     if (date) query.append("date", date);
 
     const res = await axios.get(
-      `${baseUrl}/api/guest/messages?${query.toString()}`
+      `${baseUrl}/api/guest/messages?${query.toString()}`,
+      { withCredentials: true }
     );
 
     set({ messages: res.data.data });
@@ -48,7 +49,7 @@ fetchMessages: async (search = "", date = "") => {
 
  deleteMessage: async (id) => {
     try {
-      await axios.delete(`${baseUrl}/api/guest/delete/${id}`);
+      await axios.delete(`${baseUrl}/api/guest/delete/${id}`, { withCredentials: true });
 
       // remove from UI instantly
       set((state) => ({
@@ -64,7 +65,7 @@ fetchMessages: async (search = "", date = "") => {
 
   markMessageAsRead: async (id) => {
   try {
-    await axios.patch(`${baseUrl}/api/guest/read/${id}`);
+    await axios.patch(`${baseUrl}/api/guest/read/${id}`, {}, { withCredentials: true });
     // update local state immediately
     set((state) => ({
       messages: state.messages.map((msg) =>
@@ -80,7 +81,7 @@ fetchMessages: async (search = "", date = "") => {
 getUnreadCount: async () => {
   try {
     set({ loading: true });
-    const res = await axios.get(`${baseUrl}/api/guest/messages`);
+    const res = await axios.get(`${baseUrl}/api/guest/messages`, { withCredentials: true });
     const unread = res.data.data.filter(msg => !msg.isReadByAdmin).length;
     set({ unreadGuestCount: unread });
     return unread;

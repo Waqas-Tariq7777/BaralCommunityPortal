@@ -46,7 +46,7 @@ const EditComplaintModal = ({ isOpen, onClose, complaint, onSuccess }) => {
     if (complaint) {
       setFormData({
         complaintType: complaint.complaintType || "",
-        category: complaint.complaintType === "special" ? "special" : complaint.category || "",
+        category: complaint.complaintType === "special" ? "special" : complaint.reason || "",
         message: complaint.message || "",
       });
     }

@@ -10,7 +10,7 @@ import {
   AiOutlineDelete
 } from "react-icons/ai";
 import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiX, FiFilter, FiUser, FiLayers, FiPrinter } from "react-icons/fi";
+import { FiSearch, FiClock, FiX, FiFilter, FiUser, FiLayers, FiPrinter, FiInbox } from "react-icons/fi";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -33,6 +33,7 @@ const ResolvedComplaints = () => {
   const [lastId, setLastId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [view, setView] = useState("grid");
   const [initialLoading, setInitialLoading] = useState(false);
@@ -62,10 +63,10 @@ const ResolvedComplaints = () => {
     async ({ reset = false } = {}) => {
       if (initialLoading || loadingMore) return;
 
-      if (reset && complaints.length === 0) {
-        setInitialLoading(true);   // ONLY first load
+      if (reset) {
+        setInitialLoading(true);
       } else {
-        setLoadingMore(true);      // View More & View Less
+        setLoadingMore(true);
       }
 
       try {
@@ -137,19 +138,23 @@ const ResolvedComplaints = () => {
         <div className="flex flex-wrap items-center gap-4">
           {/* SEARCH */}
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff]" />
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
+              value={searchInput}
               placeholder="Search Resolved Complaints..."
-              onChange={(e) => debouncedSearch(e.target.value)}
-              className="w-72 pl-10 pr-4 py-2 rounded-lg border dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              className="w-72 pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff] transition-all"
             />
           </div>
 
           {/* TYPE FILTER - WHOLE BOX CLICKABLE */}
           <div className="relative">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border  focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-white  cursor-pointer">
+            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff] transition-all cursor-pointer">
               <option value="All">Type</option>
               <option value="general">General</option>
               <option value="special">Special</option>
@@ -171,9 +176,47 @@ const ResolvedComplaints = () => {
           <LoadingSpinner size={60} color="#748dff" />
         </div>
       ) : complaints.length === 0 ? (
-        <div className="text-center mt-20 text-gray-500">
-          No complaints found.
-        </div>
+        (() => {
+          const isFiltered = search !== "" || typeFilter !== "All";
+          let title = "No Resolved Complaints Yet";
+          let desc = "All complaints that have been completed and resolved will show up here.";
+
+          if (isFiltered) {
+            if (search !== "") {
+              title = "No Matching Results";
+              desc = `We couldn't find any resolved complaints matching "${search}".`;
+            } else if (typeFilter !== "All") {
+              title = `No Resolved ${typeFilter === "general" ? "General" : "Special"} Complaints`;
+              desc = `There are no resolved complaints of type "${typeFilter}".`;
+            }
+          }
+
+          return (
+            <div className="flex flex-col items-center justify-center mt-16 text-center transition-all duration-300">
+              <div className="w-16 h-16 bg-[#f0f4ff]/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5 text-[#748dff] animate-pulse">
+                <FiInbox size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                {title}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+                {desc}
+              </p>
+              {isFiltered && (
+                <button
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                    setTypeFilter("All");
+                  }}
+                  className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#748dff]/10 hover:bg-[#748dff]/20 text-[#748dff] font-semibold rounded-lg transition-all duration-200"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          );
+        })()
       ) : (
         <>
           {view === "grid" ? (
@@ -360,8 +403,7 @@ const ResolvedComplaints = () => {
                 disabled={loadingMore}
                 className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
               >
-                {loadingMore && <LoadingSpinner size={18} color="#fff" />}
-                {loadingMore ? "Loading..." : "View More"}
+                {loadingMore ? <LoadingSpinner size={18} color="#fff" /> : "View More"}
               </button>
             )}
 
@@ -376,10 +418,7 @@ const ResolvedComplaints = () => {
                 disabled={loadingMore || isCollapsing}
                 className="flex items-center justify-center gap-2 bg-indigo-400 hover:bg-indigo-500 text-white px-5 py-2 rounded transition cursor-pointer disabled:opacity-70"
               >
-                {(loadingMore || isCollapsing) && (
-                  <LoadingSpinner size={18} color="#fff" />
-                )}
-                {(loadingMore || isCollapsing) ? "Loading..." : "View Less"}
+                {(loadingMore || isCollapsing) ? <LoadingSpinner size={18} color="#fff" /> : "View Less"}
               </button>
 
 

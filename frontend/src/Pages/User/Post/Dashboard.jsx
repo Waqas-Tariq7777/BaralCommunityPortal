@@ -12,10 +12,10 @@ import { useLanguageStore } from '../../../Store/LanguageStore.js';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const colors = [
-  "from-blue-500 to-blue-400",
-  "from-purple-500 to-purple-400",
-  "from-gray-600 to-gray-500",
-  "from-pink-500 to-pink-400",
+  "from-blue-500 to-indigo-400",
+  "from-purple-500 to-pink-400",
+  "from-emerald-500 to-teal-400",
+  "from-rose-500 to-orange-400",
 ];
 
 import { useTranslation } from "react-i18next";
@@ -117,55 +117,63 @@ const PostFeed = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 dark:bg-slate-900 transition-colors duration-300">
+    <div className="min-h-screen p-2 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
 
       {/* 🚨 IMPORTANT ANNOUNCEMENTS */}
       {!isAdmin && importantPosts.length > 0 && (
-        <div className="mb-6 w-full border-2 border-[#748dff] mx-auto rounded-2xl p-4 overflow-hidden relative">
-          <h2 dir={language === "ur" ? "rtl" : "ltr"} className="text-lg font-bold mb-3 flex items-center gap-2 text-[#748dff]">
-            <AiOutlineNotification className="text-3xl text-[#748dff]" />
-            {t("important_announcements")}
-          </h2>
+        <div className="mb-8 w-full xl:w-[1050px] mx-auto rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-indigo-50/40 to-slate-50/40 dark:from-slate-900/40 dark:to-slate-800/40 border border-slate-200/60 dark:border-slate-800/80 shadow-md backdrop-blur-md relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <h2 dir={language === "ur" ? "rtl" : "ltr"} className="text-base font-extrabold flex items-center gap-2.5 text-[#748dff]">
+              <div className="p-2 rounded-xl bg-[#748dff]/10 text-[#748dff] flex items-center justify-center">
+                <AiOutlineNotification className="text-xl animate-pulse" />
+              </div>
+              {t("important_announcements")}
+            </h2>
+            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {importantPosts.length} {t("active") || "Active"}
+            </span>
+          </div>
 
-          <div className="relative overflow-hidden w-full">
+          <div className="relative w-full overflow-x-auto scrollbar-none py-1">
             <div
               className={`flex gap-4 ${
-                importantPosts.length > 2 ? "marquee-track" : "justify-center"
+                importantPosts.length > 2 ? "marquee-track" : "justify-start md:justify-center px-4 md:px-0"
               }`}
             >
-              {(importantPosts.length > 2 ? [...importantPosts, ...importantPosts] : importantPosts).map(
-                (post, idx) => {
-                  const color = colors[idx % colors.length];
-
-                  return (
-                    <div
-                      key={idx}
-                      onClick={() => scrollToPost(post._id)}
-                      className={`cursor-pointer flex-shrink-0 w-[420px] h-[110px] p-4 rounded-xl text-white transition-all duration-300 hover:scale-95 hover:shadow-2xl relative overflow-hidden bg-gradient-to-br ${color}`}
-                    >
-                      <div className="flex justify-between items-start h-full relative z-10">
-                        <div className="flex flex-col justify-between h-full pr-3">
-                          <p className="font-bold text-sm whitespace-normal break-all overflow-hidden line-clamp-2">
-                            {post.title?.replace(/<[^>]+>/g, "")}
-                          </p>
-
-                          <p className="text-xs break-words line-clamp-2">
-                            {post.content?.replace(/<[^>]+>/g, "")}
-                          </p>
-
-                          <span className="text-[10px] opacity-80">
-                            {t("posted_recently")}
-                          </span>
-                        </div>
-
-                        <AiOutlineNotification className="text-2xl opacity-80 flex-shrink-0" />
+              {(importantPosts.length > 2 ? [...importantPosts, ...importantPosts] : importantPosts).map((post, idx) => {
+                const color = colors[idx % colors.length];
+                return (
+                  <div
+                    key={post._id || idx}
+                    onClick={() => scrollToPost(post._id)}
+                    className={`cursor-pointer flex-shrink-0 w-[280px] sm:w-[340px] p-5 rounded-2xl text-white bg-gradient-to-br ${color} shadow-lg hover:shadow-xl hover:scale-95 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group`}
+                  >
+                    <div>
+                      <div className="flex justify-between items-center gap-2 mb-2.5">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white uppercase tracking-wider backdrop-blur-sm">
+                          {t("announcement") || "Notice"}
+                        </span>
+                        <AiOutlineNotification className="text-sm text-white/80 group-hover:rotate-12 transition-transform" />
                       </div>
+                      
+                      <h3 className="font-extrabold text-sm text-white mb-1.5 break-words line-clamp-1 leading-snug">
+                        {post.title?.replace(/<[^>]+>/g, "")}
+                      </h3>
 
-                      <span className="absolute inset-0 bg-gradient-to-r from-white to-transparent opacity-20 animate-pulse rounded-xl"></span>
+                      <p className="text-xs text-white/90 break-words line-clamp-2 leading-relaxed">
+                        {post.content?.replace(/<[^>]+>/g, "")}
+                      </p>
                     </div>
-                  );
-                }
-              )}
+
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/20 text-[10px] text-white/85">
+                      <span>{t("posted_recently")}</span>
+                      <span className="text-white font-extrabold group-hover:underline text-[10px] flex items-center gap-0.5">
+                        {t("view_details") || "Details"} &rarr;
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -195,12 +203,12 @@ const PostFeed = () => {
       </div>
 
       {/* Posts */}
-     <div className="w-full flex flex-col items-center  sm:px-3 py-6">
+     <div className="w-full flex flex-col items-center px-0 sm:px-3 py-6">
   {posts.map((post) => (
     <div
       key={post._id}
       ref={(el) => (postRefs.current[post._id] = el)}
-      className="w-full max-w-[95%] "
+      className="w-full sm:max-w-[95%]"
     >
       <PostCard post={post} onImageClick={openModal} />
     </div>

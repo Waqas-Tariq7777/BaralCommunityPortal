@@ -6,6 +6,7 @@ import { useAuthStore } from "../../Store/AuthStore.js";
 import { MdForum } from "react-icons/md";
 import { BsFillFilePostFill } from "react-icons/bs";
 import { MdOutlinePreview } from "react-icons/md";
+import axios from "axios";
 import {
     AiOutlineDashboard,
     AiOutlineUser,
@@ -22,10 +23,63 @@ import {
     AiOutlineLogout
 } from "react-icons/ai";
 
+const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 export default function Sidebar({ open, setOpen }) {
     const [activeMenu, setActiveMenu] = useState(null);
     const location = useLocation();
     const authStore = useAuthStore();
+    const [unreadComplaints, setUnreadComplaints] = useState(0);
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const [unreadGuestMessages, setUnreadGuestMessages] = useState(0);
+
+    const fetchUnreadCounts = async () => {
+        try {
+            const complaintsRes = await axios.get(`${baseUrl}/api/complaint/admin/unread-count`, { withCredentials: true });
+            setUnreadComplaints(complaintsRes.data?.data || 0);
+        } catch (err) {
+            console.error("Failed to fetch unread complaints:", err);
+        }
+
+        try {
+            const messagesRes = await axios.get(`${baseUrl}/api/message/unread-count`, { withCredentials: true });
+            setUnreadMessages(messagesRes.data?.data || 0);
+        } catch (err) {
+            console.error("Failed to fetch unread messages:", err);
+        }
+
+        try {
+            const guestRes = await axios.get(`${baseUrl}/api/guest/unread-count`, { withCredentials: true });
+            setUnreadGuestMessages(guestRes.data?.data || 0);
+        } catch (err) {
+            console.error("Failed to fetch unread guest messages:", err);
+        }
+    };
+
+    useEffect(() => {
+        fetchUnreadCounts();
+        const interval = setInterval(fetchUnreadCounts, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const getBadge = (name) => {
+        if (name === "Complaints" && unreadComplaints > 0) {
+            return `${unreadComplaints} new`;
+        }
+        if (name === "All Complaints" && unreadComplaints > 0) {
+            return `${unreadComplaints} new`;
+        }
+        if (name === "Messages" && (unreadMessages + unreadGuestMessages) > 0) {
+            return `${unreadMessages + unreadGuestMessages} new`;
+        }
+        if (name === "Community Inbox" && unreadMessages > 0) {
+            return `${unreadMessages} new`;
+        }
+        if (name === "Guest Inbox" && unreadGuestMessages > 0) {
+            return `${unreadGuestMessages} new`;
+        }
+        return null;
+    };
 
     // Sign Out
     const handleSignOut = () => {
@@ -83,7 +137,7 @@ export default function Sidebar({ open, setOpen }) {
             <div className="flex items-center justify-between gap-3 mb-8">
                 <div className="flex items-center gap-3">
                     <img src={Logo} alt="logo" className="w-12 h-12" />
-                    {(open || window.innerWidth < 768) && (
+                    {open && (
                         <div>
                             <h1 className="text-lg font-bold text-[#748dff] uppercase">Baral Portal</h1>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Management System</p>
@@ -103,6 +157,8 @@ export default function Sidebar({ open, setOpen }) {
                     const Icon = item.icon;
                     const hasSub = item.sub && item.sub.length > 0;
                     const isActive = location.pathname === item.base || (hasSub && item.sub.some(s => s.path === location.pathname));
+                    const badgeText = getBadge(item.name);
+                    const parentHasUnread = (item.name === "Complaints" && unreadComplaints > 0) || (item.name === "Messages" && (unreadMessages > 0 || unreadGuestMessages > 0));
 
                     return (
                         <div key={i}>
@@ -113,9 +169,23 @@ export default function Sidebar({ open, setOpen }) {
                                         onClick={() => setActiveMenu(activeMenu === i ? null : i)}
                                         className={`cursor-pointer flex items-center justify-between w-full p-3 rounded-lg font-semibold transition
                                             ${isActive ? "bg-[#f0f4ff] dark:bg-slate-700 text-[#748dff]" : "text-gray-600 dark:text-gray-300 hover:bg-[#f0f4ff] dark:hover:bg-slate-700 hover:text-[#748dff]"}`}>
-                                        <div className="flex items-center gap-3">
-                                            <Icon size={22} className={isActive ? "text-[#748dff]" : ""} />
-                                            {open && <span>{item.name}</span>}
+                                        <div className="flex items-center gap-3 w-full">
+                                            <div className="relative flex items-center justify-center">
+                                                <Icon size={22} className={isActive ? "text-[#748dff]" : ""} />
+                                                {!open && parentHasUnread && (
+                                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full animate-pulse" />
+                                                )}
+                                            </div>
+                                            {open && (
+                                                <div className="flex items-center justify-between flex-1">
+                                                    <span>{item.name}</span>
+                                                    {badgeText && (
+                                                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">
+                                                            {badgeText}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         {open && (activeMenu === i ? <AiOutlineDown /> : <AiOutlineRight />)}
                                     </button>
@@ -125,6 +195,7 @@ export default function Sidebar({ open, setOpen }) {
                                         <div className="ml-11 mt-1 flex flex-col gap-1">
                                             {item.sub.map((sub, idx) => {
                                                 const SubIcon = sub.icon;
+                                                const subBadgeText = getBadge(sub.name);
                                                 return (
                                                     <NavLink
                                                         key={idx}
@@ -134,7 +205,16 @@ export default function Sidebar({ open, setOpen }) {
                                                                 ? "bg-[#748dff] text-white"
                                                                 : "text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"}`}>
                                                         <SubIcon size={16} />
-                                                        {sub.name}
+                                                        <span className="flex-1">{sub.name}</span>
+                                                        {subBadgeText && (
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                                location.pathname === sub.path
+                                                                    ? "bg-white text-red-500"
+                                                                    : "bg-red-500 text-white"
+                                                            }`}>
+                                                                {subBadgeText}
+                                                            </span>
+                                                        )}
                                                     </NavLink>
                                                 );
                                             })}

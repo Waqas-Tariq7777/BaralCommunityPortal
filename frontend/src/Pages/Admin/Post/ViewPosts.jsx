@@ -109,7 +109,7 @@ const PostFeed = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 dark:bg-slate-900 transition-colors duration-300">
+    <div className="min-h-screen p-2 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
       {/* Search */}
       <div className="flex items-center mb-6">
         <div className="relative w-full xl:w-[850px] mx-auto">

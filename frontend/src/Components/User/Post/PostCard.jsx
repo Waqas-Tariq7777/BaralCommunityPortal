@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
-import { FiThumbsUp, FiMessageCircle, FiShare2 } from "react-icons/fi";
+import { FiThumbsUp, FiMessageCircle, FiShare2, FiGlobe } from "react-icons/fi";
 import { usePostStore } from "../../../Store/PostStore.js";
 import CommentModal from "./CommentModal.jsx";
 import { toast } from "react-toastify";
@@ -9,18 +9,79 @@ import EditPostModal from "../../Admin/Post/EditPostModal.jsx";
 import { FiEdit } from "react-icons/fi";
 import { FiTrash2 } from "react-icons/fi";
 import ConfirmDeleteModal from "../../Admin/ConfirmDeleteModal.jsx";
+import axios from "axios";
+
 const PostCard = ({ post, onImageClick, onPostShared, }) => {
   const likePost = usePostStore((state) => state.likePost);
   const sharePost = usePostStore((state) => state.sharePost);
   const isAdmin = useAuthStore((state) => state.isAdmin);
   const deletePost = usePostStore((state) => state.deletePost);
   const [expanded, setExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const sanitizedContent = DOMPurify.sanitize(post.content || "");
-  const MAX_LENGTH = 300;
+  const MAX_LENGTH = isMobile ? 120 : 300;
   const isLongContent = sanitizedContent.length > MAX_LENGTH;
   const previewContent = isLongContent && !expanded
-    ? sanitizedContent.slice(0, MAX_LENGTH) + "..."
+    ? (isMobile ? sanitizedContent.slice(0, 100) : sanitizedContent.slice(0, MAX_LENGTH)) + "..."
     : sanitizedContent;
+
+  const [translatedTitle, setTranslatedTitle] = useState("");
+  const [translatedContent, setTranslatedContent] = useState("");
+  const [translating, setTranslating] = useState(false);
+  const [isTranslated, setIsTranslated] = useState(false);
+
+  const handleTranslate = async () => {
+    if (isTranslated) {
+      setIsTranslated(false);
+      return;
+    }
+
+    if (translatedContent) {
+      setIsTranslated(true);
+      return;
+    }
+
+    setTranslating(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      
+      let transTitle = "";
+      if (cleanTitle) {
+        const titleRes = await axios.post(`${apiUrl}/api/user/translate`, { text: cleanTitle });
+        transTitle = titleRes.data?.translatedText || cleanTitle;
+      }
+
+      let transContent = "";
+      if (post.content) {
+        const contentRes = await axios.post(`${apiUrl}/api/user/translate`, { text: post.content });
+        transContent = contentRes.data?.translatedText || post.content;
+      }
+
+      setTranslatedTitle(transTitle);
+      setTranslatedContent(transContent);
+      setIsTranslated(true);
+    } catch (err) {
+      console.error("Post translation failed:", err);
+      toast.error("Translation failed");
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const displayedContent = isTranslated
+    ? (isLongContent && !expanded ? DOMPurify.sanitize(translatedContent).slice(0, MAX_LENGTH) + "..." : DOMPurify.sanitize(translatedContent))
+    : previewContent;
+
 
   const [sharing, setSharing] = useState(false);
 
@@ -48,6 +109,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
   const cleanTitle = post.isSharedPost
     ? post.title.replace(/\s*\(shared by.*?\)$/i, "")
     : post.title;
+  const displayedTitle = isTranslated ? translatedTitle : cleanTitle;
 
 
   const handleLike = async () => {
@@ -126,7 +188,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
     <>
       <div
         className="relative bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] 
-  rounded-2xl shadow p-4 mb-4 w-full xl:w-[850px] mx-auto"
+  rounded-2xl shadow p-3 sm:p-4 mb-4 w-full xl:w-[850px] mx-auto transition-all"
       >
 
         {/* 🔖 Admin Important Pill */}
@@ -140,16 +202,16 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
 
         {/* 🔁 Shared By Banner */}
         {post.isSharedPost && post.sharedBy && (
-          <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 
+          <div className="flex items-center gap-2 sm:gap-3 bg-slate-100 dark:bg-slate-800 
                           border border-slate-200 dark:border-slate-700 
-                          rounded-xl px-3 py-2 mb-3">
-            <FiShare2 className="text-blue-500" />
+                          rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 mb-2 sm:mb-3">
+            <FiShare2 className="text-blue-500 text-xs sm:text-sm" />
             <img
               src={post.sharedBy?.profilePicture?.url || "/avatar.png"}
               alt="shared by"
-              className="w-8 h-8 rounded-full object-cover border border-[#748dff]"
+              className="w-6 h-6 sm:w-8 h-8 rounded-full object-cover border border-[#748dff]"
             />
-            <span className="text-sm text-slate-700 dark:text-slate-200">
+            <span className="text-xs sm:text-sm text-slate-700 dark:text-slate-200">
               Shared by{" "}
               <span className="font-semibold">
                 {post.sharedBy?.userName || "User"}
@@ -159,37 +221,38 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
         )}
 
         {/* Admin Info */}
-        <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
           <img
             src={post.adminId?.profilePicture?.url || "/avatar.png"}
             alt="admin"
-            className="border border-[#748dff] w-10 h-10 rounded-full object-cover"
+            className="border border-[#748dff] w-8 h-8 sm:w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+            <h3 className="font-semibold text-xs sm:text-sm md:text-base text-slate-800 dark:text-slate-100 leading-tight">
               {post.adminId?.userName || "Admin"}
             </h3>
-            <p className="text-xs text-[#748dff]">{timeAgo(post.createdAt)}</p>
+            <p className="text-[10px] sm:text-xs text-[#748dff]">{timeAgo(post.createdAt)}</p>
           </div>
         </div>
 
         {/* Post Title */}
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1 break-words whitespace-pre-wrap">
-          {cleanTitle}
+        <h2 className="text-sm sm:text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1 break-words whitespace-pre-wrap leading-snug">
+          {displayedTitle}
         </h2>
 
 
 
         {/* Post Content */}
-        <div className="text-slate-700 dark:text-slate-300 mb-3 break-words">
+        <div className="text-xs sm:text-sm md:text-base text-slate-700 dark:text-slate-300 mb-2 sm:mb-3 break-words">
           <div
-            dangerouslySetInnerHTML={{ __html: previewContent }}
+            className={!expanded ? "line-clamp-2 sm:line-clamp-none" : ""}
+            dangerouslySetInnerHTML={{ __html: displayedContent }}
           />
 
           {isLongContent && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="cursor-pointer mt-1 text-blue-500 hover:underline text-sm font-medium"
+              className="cursor-pointer mt-0.5 text-blue-500 hover:underline text-[11px] sm:text-xs md:text-sm font-medium"
             >
               {expanded ? "See less" : "See more"}
             </button>
@@ -199,7 +262,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
         {/* Post Images */}
         {post.images && post.images.length > 0 && (
           <div
-            className={`grid gap-2 mb-3 ${post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
+            className={`grid gap-1.5 sm:gap-2 mb-2 sm:mb-3 ${post.images.length === 1 ? "grid-cols-1" : "grid-cols-2"
               }`}
           >
             {post.images.map((img, idx) => (
@@ -207,13 +270,13 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
                 key={idx}
                 src={img.url}
                 alt="post"
-                loading="lazy" // <-- added lazy loading here
+                loading="lazy"
                 onClick={() => onImageClick(post.images, idx)}
                 className={`rounded-xl object-cover w-full cursor-pointer ${post.images.length === 1
-                  ? "h-80"
+                  ? "h-48 sm:h-80"
                   : post.images.length === 3 && idx === 2
-                    ? "col-span-2 h-64"
-                    : "h-48"
+                    ? "col-span-2 h-40 sm:h-64"
+                    : "h-32 sm:h-48"
                   }`}
               />
             ))}
@@ -222,14 +285,14 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
 
 
         {/* Likes, Comments, Shares */}
-        <div className="flex justify-between text-slate-500 text-sm mb-2">
+        <div className="flex justify-between text-slate-500 text-[10px] sm:text-xs md:text-sm mb-1.5 sm:mb-2">
           <span>{likesCount} likes</span>
           <span>{commentsCount} comments</span>
           <span>{sharesCount} shares</span>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap justify-around border-t border-slate-200 dark:border-slate-700 pt-2 gap-2">
+        <div className="flex flex-wrap justify-around border-t border-slate-200 dark:border-slate-700 pt-1.5 sm:pt-2 gap-2 text-xs sm:text-sm">
 
           <button
             onClick={handleLike}
@@ -246,6 +309,16 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
             className="cursor-pointer flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-blue-500"
           >
             <FiMessageCircle /> Comment
+          </button>
+ 
+          <button
+            onClick={handleTranslate}
+            disabled={translating}
+            className={`cursor-pointer flex items-center gap-2 hover:text-blue-500 transition-colors ${
+              isTranslated ? "text-blue-500 font-medium" : "text-slate-600 dark:text-slate-300"
+            }`}
+          >
+            <FiGlobe /> {translating ? "Translating..." : isTranslated ? "Original" : "Translate"}
           </button>
 
           {isAdmin ? (

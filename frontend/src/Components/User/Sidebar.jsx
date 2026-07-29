@@ -69,7 +69,7 @@ export default function Sidebar({ open, setOpen }) {
             <div className="flex items-center justify-between gap-3 mb-8">
                 <div className="flex items-center gap-3">
                     <img src={Logo} alt="logo" className="w-12 h-12" />
-                    {(open || window.innerWidth < 768) && (
+                    {open && (
                         <div>
                             <h1 className="text-lg font-bold text-[#748dff] uppercase">{t("baral_portal")}</h1>
                             <p className="text-xs text-gray-500 dark:text-gray-400">{t("community_system")}</p>

@@ -91,7 +91,7 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="max-w-3xl w-full mx-4 p-6 bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] rounded-xl shadow-md">
+      <div className="max-w-3xl w-full mx-4 p-6 bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] rounded-xl shadow-md max-h-[90vh] overflow-y-auto">
         {/* Heading */}
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-[#748dff] p-3 rounded-lg text-white">

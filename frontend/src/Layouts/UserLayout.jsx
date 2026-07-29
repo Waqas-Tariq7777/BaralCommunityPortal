@@ -43,7 +43,7 @@ export default function UserLayout() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar open={open} setOpen={setOpen} currentPage={currentPage} />
 
-        <main ref={scrollContainerRef} className="flex-1 overflow-auto p-6 relative">
+        <main ref={scrollContainerRef} className="flex-1 overflow-auto p-3 sm:p-6 relative">
           <Outlet />
         </main>
 

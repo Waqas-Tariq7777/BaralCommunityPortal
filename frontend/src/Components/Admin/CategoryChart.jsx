@@ -36,15 +36,15 @@ export default function CategoryComplaintChart() {
       // 🔹 Aggregate category counts per month
       const categoryData = {};
       Object.entries(data.categoryData).forEach(([cat, monthArray]) => {
-        if (cat === "special") return; // skip special
-        categoryData[cat] = monthArray.map((val) => Number(val) || 0);
+        const key = cat === "special" ? "special request" : cat;
+        categoryData[key] = monthArray.map((val) => Number(val) || 0);
       });
 
-      // 🔹 Aggregate current month stats and remove "special"
+      // 🔹 Aggregate current month stats
       const currentMonthStats = {};
       Object.entries(data.currentMonthStats).forEach(([cat, count]) => {
-        if (cat === "special") return;
-        currentMonthStats[cat] = Number(count) || 0;
+        const key = cat === "special" ? "special request" : cat;
+        currentMonthStats[key] = Number(count) || 0;
       });
 
       setDataState({
@@ -74,7 +74,7 @@ export default function CategoryComplaintChart() {
 
   // Line Chart Data
   const chartData = {
-    labels: categories,
+    labels: categories.map((cat) => cat === "special request" ? "Special Request" : cat.charAt(0).toUpperCase() + cat.slice(1)),
     datasets: [
       {
         label: "Complaints Trend",
@@ -125,7 +125,7 @@ export default function CategoryComplaintChart() {
         <p className="text-xs text-gray-400 mt-1">
           🔥 Highest complaints:{" "}
           <span className="text-green-500 font-semibold">
-            {topCategory} ({topValue})
+            {topCategory === "special request" ? "Special Request" : topCategory ? topCategory.charAt(0).toUpperCase() + topCategory.slice(1) : ""} ({topValue})
           </span>
         </p>
       </div>
@@ -198,7 +198,7 @@ export default function CategoryComplaintChart() {
                 transition={{ delay: index * 0.05 }}
               >
                 <div className="flex justify-between text-xs mb-1 dark:text-gray-300">
-                  <span>{cat}</span>
+                  <span>{cat === "special request" ? "Special Request" : cat.charAt(0).toUpperCase() + cat.slice(1)}</span>
                   <span>{value}</span>
                 </div>
 

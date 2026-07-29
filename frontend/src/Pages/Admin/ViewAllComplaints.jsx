@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineMail, AiOutlinePhone, AiOutlineCalendar, AiOutlineEye } from "react-icons/ai";
 import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiFilter, FiUser, FiLayers } from "react-icons/fi";
+import { FiSearch, FiClock, FiFilter, FiUser, FiLayers, FiInbox } from "react-icons/fi";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -18,6 +18,7 @@ const ComplaintManagement = () => {
   const [lastId, setLastId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("Any");
   const [view, setView] = useState("grid");
@@ -42,10 +43,10 @@ const ComplaintManagement = () => {
     if (isFetchingRef.current) return;
     if (initialLoading || loadingMore) return;
     isFetchingRef.current = true;
-    if (reset && complaints.length === 0) {
-      setInitialLoading(true);   // ONLY first load
+    if (reset) {
+      setInitialLoading(true);
     } else {
-      setLoadingMore(true);      // View More & View Less
+      setLoadingMore(true);
     }
 
     try {
@@ -100,43 +101,55 @@ const ComplaintManagement = () => {
 
 
   return (
-    <div className="min-h-screen p-6 dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen p-3 sm:p-6 dark:bg-gray-900 transition-colors duration-300">
       <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Complaint Management</h1>
 
       {/* SEARCH & FILTERS & VIEW TOGGLE */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-3 sm:space-y-0">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1">
           {/* SEARCH */}
-          <div className="relative">
+          <div className="relative w-full sm:w-72">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <input type="text" placeholder="Search Complaints..." onChange={e => debouncedSearch(e.target.value)} className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all" />
+            <input
+              type="text"
+              value={searchInput}
+              placeholder="Search by House Number"
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
+            />
           </div>
 
-          {/* TYPE FILTER */}
-          <div className="relative">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
-              <option value="All">Type</option>
-              <option value="general">General</option>
-              <option value="special">Special</option>
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</span>
-          </div>
+          {/* FILTERS CONTAINER */}
+          <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
+            {/* TYPE FILTER */}
+            <div className="relative flex-1 sm:flex-none">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="appearance-none w-full sm:w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
+                <option value="All">Type</option>
+                <option value="general">General</option>
+                <option value="special">Special</option>
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</span>
+            </div>
 
-          {/* STATUS FILTER */}
-          <div className="relative">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
-              <option value="Any">Status</option>
-              <option value="pending">Pending</option>
-              <option value="in progress">In Progress</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</span>
+            {/* STATUS FILTER */}
+            <div className="relative flex-1 sm:flex-none">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="appearance-none w-full sm:w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer">
+                <option value="Any">Status</option>
+                <option value="pending">Pending</option>
+                <option value="in progress">In Progress</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">▼</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex justify-end space-x-2">
           <button onClick={() => setView("grid")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "grid" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineAppstore size={20} /></button>
           <button onClick={() => setView("list")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "list" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineUnorderedList size={20} /></button>
         </div>
@@ -148,9 +161,52 @@ const ComplaintManagement = () => {
           <LoadingSpinner size={60} color="#748dff" />
         </div>
       ) : complaints.length === 0 ? (
-        <div className="text-center mt-20 text-gray-500">
-          No complaints found.
-        </div>
+        (() => {
+          const isFiltered = search !== "" || typeFilter !== "All" || statusFilter !== "Any";
+          let title = "No Complaints Found";
+          let desc = "There are no complaints filed in the system yet.";
+
+          if (isFiltered) {
+            if (search !== "") {
+              title = "No Matching Results";
+              desc = `We couldn't find any complaints matching "${search}".`;
+            } else if (statusFilter !== "Any") {
+              const statusEn = statusFilter.toLowerCase() === "in progress" ? "in-progress" : statusFilter;
+              title = `No ${statusEn.charAt(0).toUpperCase() + statusEn.slice(1)} Complaints Yet`;
+              desc = `There are no complaints with status "${statusEn}" at the moment.`;
+            } else if (typeFilter !== "All") {
+              title = `No ${typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)} Complaints Found`;
+              desc = `There are no complaints of type "${typeFilter}".`;
+            }
+          }
+
+          return (
+            <div className="flex flex-col items-center justify-center mt-16 text-center transition-all duration-300">
+              <div className="w-16 h-16 bg-[#f0f4ff]/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5 text-[#748dff] animate-pulse">
+                <FiInbox size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                {title}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+                {desc}
+              </p>
+              {isFiltered && (
+                <button
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                    setTypeFilter("All");
+                    setStatusFilter("Any");
+                  }}
+                  className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#748dff]/10 hover:bg-[#748dff]/20 text-[#748dff] font-semibold rounded-lg transition-all duration-200"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          );
+        })()
       ) :
         <>
           {view === "grid" ? (

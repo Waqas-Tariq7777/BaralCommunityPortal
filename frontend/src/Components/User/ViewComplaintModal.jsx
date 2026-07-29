@@ -118,7 +118,7 @@ const ViewComplaintModal = ({ isOpen, complaint, onClose }) => {
             <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
               <FiInfo className="text-purple-500 text-xl" />
               <span className="text-black dark:text-white">
-                {t("reason")}: {complaint.reason}
+                {t("reason")}: {complaint.reason === "special" ? t("special_request") : t(complaint.reason)}
               </span>
             </div>
           )}

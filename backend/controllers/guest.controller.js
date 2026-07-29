@@ -97,5 +97,16 @@ const markMessageAsRead = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, message, "Message marked as read"));
 });
 
-export { submitGuestMessage, getGuestMessages, deleteGuestMessage, markMessageAsRead };
+// Get unread guest messages count (Admin)
+const getUnreadGuestMessagesCount = asyncHandler(async (req, res) => {
+  const count = await Guest.countDocuments({
+    isReadByAdmin: { $ne: true }
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, count, "Unread guest messages count")
+  );
+});
+
+export { submitGuestMessage, getGuestMessages, deleteGuestMessage, markMessageAsRead, getUnreadGuestMessagesCount };
 

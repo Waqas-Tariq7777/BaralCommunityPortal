@@ -52,13 +52,13 @@ export default function Footer() {
           </h2>
           <ul className="space-y-2">
             <li>
-              <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition"><MdOutlineChevronRight className="text-white" />{t("terms_of_service")}</Link>
+              <Link to="/termsOfService" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition"><MdOutlineChevronRight className="text-white" />{t("terms_of_service")}</Link>
             </li>
             <li>
               <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition"><MdOutlineChevronRight className="text-white" />{t("privacy_policy")}</Link>
             </li>
             <li>
-              <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition"><MdOutlineChevronRight className="text-white" />{t("disclaimer")}</Link>
+              <Link to="/disclaimer" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition"><MdOutlineChevronRight className="text-white" />{t("disclaimer")}</Link>
             </li>
           </ul>
         </div>
@@ -92,9 +92,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-6 flex flex-col lg:flex-row justify-between items-center gap-4 text-white/80 text-sm">
         <p>{t("copyright")}</p>
         <div className="flex gap-6">
-          <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition">{t("terms")}</Link>
+          <Link to="/termsOfService" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition">{t("terms")}</Link>
           <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition">{t("privacy")}</Link>
-          <Link to="/privacyPolicy" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition">{t("disclaimer_short")}</Link>
+          <Link to="/disclaimer" className="flex items-center gap-1 px-2 py-1 rounded hover:bg-white/20 transition">{t("disclaimer_short")}</Link>
         </div>
       </div>
     </footer>

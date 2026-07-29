@@ -293,6 +293,17 @@ const deleteResolvedComplaint = asyncHandler(async (req, res) => {
   );
 });
 
+// Get unread complaints count (admin)
+const getUnreadComplaintsCount = asyncHandler(async (req, res) => {
+  const count = await Complaint.countDocuments({
+    isReadByAdmin: { $ne: true }
+  });
+
+  res.status(200).json(
+    new ApiResponse(200, count, "Unread complaints count")
+  );
+});
+
 export {
   submitComplaint,
   getUserComplaints,
@@ -303,5 +314,6 @@ export {
   resolvedComplaint,
   updateResolvedResources,
   markComplaintAsRead, 
-  deleteResolvedComplaint
+  deleteResolvedComplaint,
+  getUnreadComplaintsCount
 };

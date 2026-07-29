@@ -13,6 +13,7 @@ export default function Form() {
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState({});
+  const [success, setSuccess] = useState(false);
 
   const { submitMessage, loading } = useGuestStore(); // ✅ Get submit function & loading state
   const { t } = useTranslation(); // ✅ For translations
@@ -57,6 +58,8 @@ export default function Form() {
       setReason("");
       setMessage("");
       setError({});
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 8000); // Hide after 8s
     } catch (err) {
       console.error("Failed to submit message:", err);
     }
@@ -129,6 +132,13 @@ export default function Form() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               {t("required_fields_text")}
             </p>
+
+            {success && (
+              <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 flex items-center justify-between text-sm font-semibold animate-pulse">
+                <span>{language === "ur" ? "آپ کا پیغام کامیابی کے ساتھ بھیج دیا گیا ہے!" : "Your message has been sent successfully!"}</span>
+                <button onClick={() => setSuccess(false)} className="hover:text-green-700 text-lg leading-none">&times;</button>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email */}

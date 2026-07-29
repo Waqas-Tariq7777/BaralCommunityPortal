@@ -21,6 +21,8 @@ import ViewComplaintList from './Pages/User/ViewComplaintList.jsx';
 import ViewAllComplaints from './Pages/Admin/ViewAllComplaints.jsx';
 import ResolvedComplaints from './Pages/Admin/ResolvedComplaints.jsx';
 import PrivacyPolicy from './Pages/PrivacyPolicy.jsx';
+import TermsOfService from './Pages/TermsOfService.jsx';
+import Disclaimer from './Pages/Disclaimer.jsx';
 import AddPost from './Pages/Admin/Post/AddPost.jsx';
 import ViewPosts from './Pages/Admin/Post/ViewPosts.jsx';
 import LanguageSwitcher from './Components/LanguageSwitcher.jsx';
@@ -43,6 +45,10 @@ function App() {
     else document.documentElement.classList.remove("dark");
   }, [dark]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
+
   return (
     <>
       {/* Only show for non-admin users */}
@@ -64,6 +70,8 @@ function App() {
         <Route path='/about' element={<About />} />
         <Route path='/contact' element={<Contact />} />
         <Route path='/privacyPolicy' element={<PrivacyPolicy />} />
+        <Route path='/termsOfService' element={<TermsOfService />} />
+        <Route path='/disclaimer' element={<Disclaimer />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path='/sessionExpire' element={<SessionExpired />} />
 

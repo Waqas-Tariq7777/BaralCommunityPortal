@@ -38,7 +38,7 @@ export default function AdminLayout() {
         <Topbar open={open} setOpen={setOpen} currentPage={currentPage || "Dashboard"} />
 
         {/* Page content scrollable */}
-        <main ref={scrollContainerRef} className="flex-1 overflow-auto p-6">
+        <main ref={scrollContainerRef} className="flex-1 overflow-auto p-3 sm:p-6">
           <Outlet />
         </main>
 

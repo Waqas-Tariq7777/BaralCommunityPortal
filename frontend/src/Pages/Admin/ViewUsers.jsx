@@ -7,7 +7,7 @@ import UpdateUserModal from "../../Components/Admin/UpdateUserModal.jsx";
 import ViewUserModal from "../../Components/Admin/ViewUserModal.jsx";
 import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiUserX } from "react-icons/fi";
 
 // capitalize words helper
 const capitalizeWords = (str) => str ? str.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "";
@@ -18,6 +18,7 @@ const UserManagement = () => {
   const [lastId, setLastId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [view, setView] = useState("grid");
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -98,12 +99,16 @@ const UserManagement = () => {
 
         {/* SEARCH INPUT WITH ICON */}
         <div className="relative w-full sm:w-1/2">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
           <input
             type="text"
+            value={searchInput}
             placeholder="Search users..."
-            onChange={(e) => debouncedSearch(e.target.value)}
-            className="border rounded px-4 py-2 pl-10 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
+            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-[#748dff] focus:ring-1 focus:ring-[#748dff] transition-all"
           />
         </div>
 
@@ -139,9 +144,41 @@ const UserManagement = () => {
                 <LoadingSpinner size={60} color="#748dff" />
               </div>
             ) : users.length === 0 ? (
-              <div className="text-center mt-20 text-gray-500">
-                No Users found.
-              </div>
+              (() => {
+                const isFiltered = search !== "";
+                let title = "No Users Found";
+                let desc = "There are no users registered in the system yet.";
+
+                if (isFiltered) {
+                  title = "No Matching Users";
+                  desc = `We couldn't find any users matching "${search}".`;
+                }
+
+                return (
+                  <div className="flex flex-col items-center justify-center mt-16 text-center transition-all duration-300">
+                    <div className="w-16 h-16 bg-[#f0f4ff]/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5 text-[#748dff] animate-pulse">
+                      <FiUserX size={32} />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                      {title}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+                      {desc}
+                    </p>
+                    {isFiltered && (
+                      <button
+                        onClick={() => {
+                          setSearchInput("");
+                          setSearch("");
+                        }}
+                        className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#748dff]/10 hover:bg-[#748dff]/20 text-[#748dff] font-semibold rounded-lg transition-all duration-200"
+                      >
+                        Clear Search
+                      </button>
+                    )}
+                  </div>
+                );
+              })()
             )  : (
 
           <>

@@ -5,7 +5,7 @@ import Header from '../Components/Header.jsx'
 import Footer from '../Components/Footer.jsx'
 import DamImg from '../assets/images/dam1.jpg'
 
-export default function PrivacyPolicy() {
+export default function TermsOfService() {
   const { t } = useTranslation();
   const { language } = useLanguageStore();
   const isRtl = language === 'ur';
@@ -44,11 +44,11 @@ export default function PrivacyPolicy() {
           <div className="absolute inset-0 bg-black/60 dark:bg-black/70"></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-8 lg:px-12 pt-20 sm:pt-24 md:pt-32 lg:pt-36 pb-16 sm:pb-20 md:pb-28 lg:pb-32">
             <h1 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-wide drop-shadow-lg">
-              {t('privacy_policy')}
+              {t('terms_of_service')}
             </h1>
             <div className="w-16 h-1 bg-[#748dff] rounded-full mt-3 mb-2 sm:mb-3"></div>
             <p className="text-gray-200 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-              {isRtl ? 'آپ کے ذاتی ڈیٹا کی حفاظت اور معلومات سے متعلق پالیسی' : 'Your data protection and privacy standards.'}
+              {isRtl ? 'پورٹل استعمال کرنے سے متعلق شرائط و ضوابط' : 'Rules and guidelines for using the community portal.'}
             </p>
           </div>
         </div>
@@ -81,31 +81,39 @@ export default function PrivacyPolicy() {
             {isRtl ? (
               <div className="space-y-6 leading-relaxed">
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">معلومات جو ہم اکٹھا کرتے ہیں</h2>
-                  <p>جب آپ پورٹل پر لاگ ان کرتے ہیں یا شکایات جمع کرواتے ہیں، تو ہم آپ کا نام، ہاؤس نمبر، موبائل نمبر، ای میل ایڈریس اور شکایت کی تفصیلات جمع کرتے ہیں تاکہ آپ کو بہتر خدمات فراہم کی جا سکیں۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">1. شرائط کی قبولیت</h2>
+                  <p>بارال واپڈا کمیونٹی پورٹل تک رسائی حاصل کر کے، آپ ان سروس کی شرائط، تمام قابل اطلاق قوانین اور ضوابط کے پابند ہونے پر رضامند ہوتے ہیں۔ اگر آپ ان شرائط سے متفق نہیں ہیں، تو آپ کو اس پورٹل کا استعمال کرنے کی اجازت نہیں ہے۔</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">معلومات کا استعمال</h2>
-                  <p>ہم آپ کی معلومات کو صرف شکایات کے حل، رابطہ کرنے اور آپ کے پورٹل اکاؤنٹ کو برقرار رکھنے کے لیے استعمال کرتے ہیں۔ آپ کی معلومات کو کبھی فروخت یا غیر متعلقہ فریقین کے ساتھ شیئر نہیں کیا جاتا۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">2. پورٹل کا استعمال اور اکاؤنٹ سیکیورٹی</h2>
+                  <p>شکایات جمع کرنے اور دیگر خدمات تک رسائی کے لیے فراہم کردہ اکاؤنٹ کی اسناد کو خفیہ رکھنا آپ کی ذمہ داری ہے۔ کسی بھی غیر مجاز استعمال کی صورت میں انتظامیہ کو فوری مطلع کریں۔</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">سیکیورٹی اور ڈیٹا کا تحفظ</h2>
-                  <p>ہم آپ کے ذاتی ڈیٹا کو محفوظ رکھنے کے لیے جدید ترین انکرپشن اور حفاظتی اقدامات کا استعمال کرتے ہیں۔ ہم ڈیٹا بیس تک رسائی کو سختی سے مانیٹر اور کنٹرول کرتے ہیں۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">3. ممنوعہ سرگرمیاں</h2>
+                  <p>آپ پورٹل کو کسی بھی غیر قانونی مقصد، ہراسانی، غلط بیانی یا پورٹل کی سیکیورٹی کو نقصان پہنچانے کے لیے استعمال کرنے سے گریز کرنے کے پابند ہیں۔</p>
+                </section>
+                <section className="space-y-2">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">4. ذمہ داری کی حد</h2>
+                  <p>انتظامیہ کسی بھی ایسے نقصان کی ذمہ دار نہیں ہوگی جو پورٹل کے استعمال یا استعمال نہ کر پانے کی وجہ سے پیش آئے۔ تمام خدمات موجودہ حالت میں فراہم کی جاتی ہیں۔</p>
                 </section>
               </div>
             ) : (
               <div className="space-y-6 leading-relaxed">
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Information We Collect</h2>
-                  <p>When you log into your portal account or submit complaints, we collect personal information such as your name, house number, mobile number, email address, and the specific details of your complaint to facilitate service dispatch.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">1. Acceptance of Terms</h2>
+                  <p>By accessing the Baral WAPDA Community Portal, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using this portal.</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">How We Use Information</h2>
-                  <p>We use the collected information solely to process your requests, communicate service resolutions, and secure your access credentials. Your personal data is never sold or shared with third-party advertisers.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">2. User Account Security</h2>
+                  <p>You are responsible for safeguarding the credentials provided for your portal access. You agree to notify the administration immediately of any unauthorized use of your account or any other breach of security.</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Data Protection & Security</h2>
-                  <p>We implement standard encryption protocols and secure database connections to protect resident records from unauthorized access, modification, or leakage. Access is strictly limited to verified WAPDA personnel.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">3. Prohibited Conduct</h2>
+                  <p>Users agree not to use the portal for any unlawful activity, harassment, false reporting of complaints, or attempting to compromise the security and performance of the web application.</p>
+                </section>
+                <section className="space-y-2">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">4. Limitation of Liability</h2>
+                  <p>In no event shall the WAPDA administration or portal creators be liable for any damages arising out of the use or inability to use the services on the portal. All services are provided "as is".</p>
                 </section>
               </div>
             )}

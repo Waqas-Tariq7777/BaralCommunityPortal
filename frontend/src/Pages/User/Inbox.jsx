@@ -30,6 +30,7 @@ const Inbox = () => {
 
   // ✅ NEW STATE → toggle replies per message
   const [openReplies, setOpenReplies] = useState({});
+  const [expandedMessages, setExpandedMessages] = useState({});
 
   useEffect(() => {
     fetchInbox(searchTerm, searchDate, typeFilter, statusFilter);
@@ -157,11 +158,30 @@ const Inbox = () => {
                   </div>
 
                   <p className="text-gray-600 dark:text-gray-300 break-words">
-                    {msg.message}
+                    <span className="hidden md:inline">{msg.message}</span>
+                    <span className="inline md:hidden font-sans">
+                      {msg.message.length > 120 && !expandedMessages[msg._id]
+                        ? `${msg.message.substring(0, 120)}...`
+                        : msg.message}
+                    </span>
                     {msg.editedAt && (
                       <span className="text-xs text-gray-400 ml-2">(edited)</span>
                     )}
                   </p>
+
+                  {msg.message.length > 120 && (
+                    <button
+                      onClick={() =>
+                        setExpandedMessages((prev) => ({
+                          ...prev,
+                          [msg._id]: !prev[msg._id],
+                        }))
+                      }
+                      className="cursor-pointer md:hidden text-xs text-[#748dff] font-semibold hover:underline mt-1 block"
+                    >
+                      {expandedMessages[msg._id] ? t("view_less") || "View Less" : t("view_more") || "View More"}
+                    </button>
+                  )}
 
                   {/* Buttons on same line */}
                   <div className="flex gap-3 mt-2 flex-wrap">

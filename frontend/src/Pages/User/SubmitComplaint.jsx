@@ -55,7 +55,7 @@ export default function SubmitComplaint() {
           <p className="text-gray-600 dark:text-gray-300">
             {t("special_text")}
           </p>
-          <div onClick={() => setSelected({ type: "special", category: "special_request" })} className="cursor-pointer p-6 rounded-xl shadow-lg bg-gradient-to-br from-[#748dff] to-indigo-400 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#748dff] before:to-indigo-400 before:opacity-20 before:animate-pulse">
+          <div onClick={() => setSelected({ type: "special", category: "special" })} className="cursor-pointer p-6 rounded-xl shadow-lg bg-gradient-to-br from-[#748dff] to-indigo-400 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-[#748dff] before:to-indigo-400 before:opacity-20 before:animate-pulse">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm opacity-90">{t("special_request")}</p>

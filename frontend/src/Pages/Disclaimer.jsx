@@ -5,7 +5,7 @@ import Header from '../Components/Header.jsx'
 import Footer from '../Components/Footer.jsx'
 import DamImg from '../assets/images/dam1.jpg'
 
-export default function PrivacyPolicy() {
+export default function Disclaimer() {
   const { t } = useTranslation();
   const { language } = useLanguageStore();
   const isRtl = language === 'ur';
@@ -44,11 +44,11 @@ export default function PrivacyPolicy() {
           <div className="absolute inset-0 bg-black/60 dark:bg-black/70"></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6 md:px-8 lg:px-12 pt-20 sm:pt-24 md:pt-32 lg:pt-36 pb-16 sm:pb-20 md:pb-28 lg:pb-32">
             <h1 className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-wide drop-shadow-lg">
-              {t('privacy_policy')}
+              {t('disclaimer')}
             </h1>
             <div className="w-16 h-1 bg-[#748dff] rounded-full mt-3 mb-2 sm:mb-3"></div>
             <p className="text-gray-200 text-sm sm:text-base md:text-lg max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-              {isRtl ? 'آپ کے ذاتی ڈیٹا کی حفاظت اور معلومات سے متعلق پالیسی' : 'Your data protection and privacy standards.'}
+              {isRtl ? 'پورٹل سے متعلق قانونی دستبرداری' : 'Legal statements and disclaimer notes.'}
             </p>
           </div>
         </div>
@@ -81,31 +81,31 @@ export default function PrivacyPolicy() {
             {isRtl ? (
               <div className="space-y-6 leading-relaxed">
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">معلومات جو ہم اکٹھا کرتے ہیں</h2>
-                  <p>جب آپ پورٹل پر لاگ ان کرتے ہیں یا شکایات جمع کرواتے ہیں، تو ہم آپ کا نام، ہاؤس نمبر، موبائل نمبر، ای میل ایڈریس اور شکایت کی تفصیلات جمع کرتے ہیں تاکہ آپ کو بہتر خدمات فراہم کی جا سکیں۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">عام معلومات</h2>
+                  <p>بارال واپڈا کمیونٹی پورٹل پر موجود معلومات صرف عام معلوماتی مقاصد کے لیے ہیں۔ انتظامیہ معلومات کو اپ ٹو ڈیٹ اور درست رکھنے کی کوشش کرتی ہے لیکن اس کی مکمل درستگی یا دستیابی کی کوئی ضمانت نہیں دیتی۔</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">معلومات کا استعمال</h2>
-                  <p>ہم آپ کی معلومات کو صرف شکایات کے حل، رابطہ کرنے اور آپ کے پورٹل اکاؤنٹ کو برقرار رکھنے کے لیے استعمال کرتے ہیں۔ آپ کی معلومات کو کبھی فروخت یا غیر متعلقہ فریقین کے ساتھ شیئر نہیں کیا جاتا۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">تکنیکی اور بجلی کی خدمات</h2>
+                  <p>بجلی، پانی اور دیگر عوامی یوٹیلیٹی شکایات کے حل کا وقت تکنیکی اور موسمی صورتحال کے پیش نظر تبدیل ہو سکتا ہے۔ پورٹل پر ظاہر کردہ حل کی اوسط مدت محض ایک تخمینہ ہے اور حتمی کارروائی کا وقت مختلف ہو سکتا ہے۔</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">سیکیورٹی اور ڈیٹا کا تحفظ</h2>
-                  <p>ہم آپ کے ذاتی ڈیٹا کو محفوظ رکھنے کے لیے جدید ترین انکرپشن اور حفاظتی اقدامات کا استعمال کرتے ہیں۔ ہم ڈیٹا بیس تک رسائی کو سختی سے مانیٹر اور کنٹرول کرتے ہیں۔</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">بیرونی روابط</h2>
+                  <p>یہ پورٹل دیگر سرکاری یا واپڈا کی بیرونی ویب سائٹس کے لنکس پر مشتمل ہو سکتا ہے جن کے مواد اور پرائیویسی پریکٹسز پر ہمارا کوئی کنٹرول نہیں ہے۔</p>
                 </section>
               </div>
             ) : (
               <div className="space-y-6 leading-relaxed">
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Information We Collect</h2>
-                  <p>When you log into your portal account or submit complaints, we collect personal information such as your name, house number, mobile number, email address, and the specific details of your complaint to facilitate service dispatch.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">General Information</h2>
+                  <p>All information provided on the Baral WAPDA Community Portal is for general information and management purposes only. While the administration strives to keep the details accurate and updated, we make no representations or warranties of any kind regarding accuracy or completeness.</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">How We Use Information</h2>
-                  <p>We use the collected information solely to process your requests, communicate service resolutions, and secure your access credentials. Your personal data is never sold or shared with third-party advertisers.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Utility & Service Resolution</h2>
+                  <p>Response times for maintenance (electricity, water, security) are subject to technical availability, weather conditions, and load. Estimates displayed on the dashboard do not constitute a legally binding service-level agreement.</p>
                 </section>
                 <section className="space-y-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Data Protection & Security</h2>
-                  <p>We implement standard encryption protocols and secure database connections to protect resident records from unauthorized access, modification, or leakage. Access is strictly limited to verified WAPDA personnel.</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">External Links</h2>
+                  <p>The portal may contain links to external official websites of WAPDA or other governmental bodies. We hold no control over, and assume no responsibility for, the content or practices of any third-party websites.</p>
                 </section>
               </div>
             )}

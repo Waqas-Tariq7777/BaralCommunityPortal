@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { FiX, FiThumbsUp, FiMessageCircle, FiTrash2 } from "react-icons/fi";
+import { FiX, FiThumbsUp, FiMessageCircle, FiTrash2, FiSend, FiEdit3 } from "react-icons/fi";
 import { usePostStore } from "../../../Store/PostStore.js";
 import { v4 as uuidv4 } from "uuid";
 import { useAuthStore } from "../../../Store/AuthStore.js";
+import axios from "axios";
 
 const CommentModal = ({ post, onClose, onCommentAdded }) => {
   const {
@@ -12,12 +13,11 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
     likeComment,
     likeReply,
     editComment,
-    deleteComment, // ✅ top-level delete
+    deleteComment,
     deleteReply,
   } = usePostStore();
   const isAdmin = useAuthStore((state) => state.isAdmin);
 
-  console.log("Admin: ",isAdmin)
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [replyText, setReplyText] = useState("");
@@ -29,6 +29,32 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
   const [editingReplyId, setEditingReplyId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [editingLoading, setEditingLoading] = useState(false);
+  const [translatedComments, setTranslatedComments] = useState({});
+  const [translatingIds, setTranslatingIds] = useState({});
+
+  const handleTranslate = async (id, text) => {
+    if (translatedComments[id]) {
+      setTranslatedComments(prev => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+      return;
+    }
+
+    setTranslatingIds(prev => ({ ...prev, [id]: true }));
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/user/translate`, { text });
+      const translated = res.data?.translatedText;
+      if (translated) {
+        setTranslatedComments(prev => ({ ...prev, [id]: translated }));
+      }
+    } catch (err) {
+      console.error("Translation failed:", err);
+    } finally {
+      setTranslatingIds(prev => ({ ...prev, [id]: false }));
+    }
+  };
 
   const inputRef = useRef(null);
 
@@ -189,7 +215,6 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
     setComments((prev) => replaceTempReply(prev));
   };
 
-
   const toggleReplies = (commentId) => {
     setExpandedReplies((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
   };
@@ -254,14 +279,11 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
     return 1;
   };
 
-  // ✅ FIXED DELETE HANDLER (nested-safe)
   const handleDelete = async (commentId, replyId = null) => {
     try {
       if (replyId) {
-        // 🔹 reply / nested reply
         await deleteReply(post._id, commentId, replyId);
       } else {
-        // 🔹 top-level comment
         await deleteComment(post._id, commentId);
       }
 
@@ -303,34 +325,34 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
     }
   };
 
-
   const renderReplies = (replies, commentId, level = 0) =>
     replies?.map((reply) => (
       <div
         key={reply._id}
-        className={`flex gap-2 mt-2 min-w-0 ${level > 0 ? "sm:ml-10 ml-0" : ""}`}
+        className={`flex gap-2 sm:gap-3 mt-3 min-w-0 ${level > 0 ? "sm:ml-8 ml-0" : ""}`}
       >
         <img
           src={reply.userId?.profilePicture?.url || "/avatar.png"}
-          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+          className="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-slate-800"
+          alt="Avatar"
         />
         <div className="flex-1 min-w-0">
-          <div className="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 break-words whitespace-normal">
-            <p className="font-medium text-xs text-slate-800 dark:text-white break-words whitespace-normal">
+          <div className="bg-slate-100 dark:bg-slate-800/80 rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 shadow-sm border border-slate-200/20 dark:border-slate-700/20">
+            <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
               {reply.userId?.userName || "User"}
             </p>
 
             {editingReplyId === reply._id ? (
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-2">
                 <input
                   autoFocus
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
-                  className="dark:placeholder-gray-200 dark:text-gray-200 flex-1 px-3 py-1 rounded-full border dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-[#748dff]"
+                  className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#748dff] focus:border-[#748dff]"
                 />
                 <button
                   disabled={editingLoading}
-                  className="text-indigo-500 cursor-pointer text-sm font-medium"
+                  className="text-[#748dff] hover:text-indigo-500 font-semibold text-xs cursor-pointer px-2"
                   onClick={async () => {
                     if (!editingText.trim()) return;
                     setEditingLoading(true);
@@ -367,90 +389,95 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
                     setEditingReplyId(null);
                     setEditingText("");
                   }}
-                  className="text-red-500 cursor-pointer text-sm font-medium"
+                  className="text-slate-400 hover:text-red-500 text-xs font-semibold"
                 >
-                  ✕
+                  Cancel
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-slate-700 dark:text-slate-300 break-words whitespace-normal">
-                {reply.reply}
+              <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 break-words leading-relaxed">
+                {translatedComments[reply._id] || reply.reply}
               </p>
             )}
           </div>
 
-          <div className="flex gap-3 mt-1 text-xs text-slate-500 flex-wrap">
+          <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-1.5 px-2 text-[11px] text-slate-500 font-medium">
             <button
               onClick={() => handleLikeReply(commentId, reply._id)}
-              className={`cursor-pointer flex items-center gap-1 ${reply.likedByCurrentUser ? "text-blue-500" : "hover:text-indigo-500"
-                }`}
+              className={`cursor-pointer flex items-center gap-1.5 transition-colors ${
+                reply.likedByCurrentUser ? "text-[#748dff]" : "hover:text-[#748dff]"
+              }`}
             >
               <FiThumbsUp />
-              {reply.numberOfLikes}
+              <span>{reply.numberOfLikes}</span>
             </button>
+            
+            <button
+              onClick={() => handleTranslate(reply._id, reply.reply)}
+              disabled={translatingIds[reply._id]}
+              className="cursor-pointer hover:text-[#748dff] transition-colors"
+            >
+              {translatingIds[reply._id] ? "..." : translatedComments[reply._id] ? "Original" : "Translate"}
+            </button>
+
             <button
               onClick={() => {
                 const depth = getReplyDepth(comments, reply._id);
                 if (depth >= 4) {
-                  setToastMessage(
-                    "Replies are limited here. Please reply to the top-level comment."
-                  );
+                  setToastMessage("Replies are limited here. Please reply to the top-level comment.");
                   setTimeout(() => setToastMessage(""), 2500);
                   return;
                 }
                 setReplyingTo(reply._id);
               }}
-              className=" cursor-pointer flex items-center gap-1 hover:text-indigo-500"
+              className="cursor-pointer flex items-center gap-1.5 hover:text-[#748dff] transition-colors"
             >
               <FiMessageCircle />
-              Reply
+              <span>Reply</span>
             </button>
 
-           {/* Edit only for owner */}
-{reply.userId._id === post.currentUserId && (
-  <button
-    onClick={() => {
-      setEditingReplyId(reply._id);
-      setEditingText(reply.reply);
-    }}
-    className="cursor-pointer flex items-center gap-1 hover:text-indigo-500 text-xs"
-  >
-    Edit
-  </button>
-)}
+            {reply.userId._id === post.currentUserId && (
+              <button
+                onClick={() => {
+                  setEditingReplyId(reply._id);
+                  setEditingText(reply.reply);
+                }}
+                className="cursor-pointer hover:text-[#748dff] transition-colors flex items-center gap-1"
+              >
+                <FiEdit3 /> Edit
+              </button>
+            )}
 
-{/* Delete for owner OR admin */}
-{(reply.userId._id === post.currentUserId || isAdmin) && (
-  <button
-    onClick={() => handleDelete(commentId, reply._id)}
-    className="cursor-pointer flex items-center gap-1 hover:text-red-500 text-xs"
-  >
-    <FiTrash2 /> Delete
-  </button>
-)}
-
+            {(reply.userId._id === post.currentUserId || isAdmin) && (
+              <button
+                onClick={() => handleDelete(commentId, reply._id)}
+                className="cursor-pointer hover:text-red-500 text-rose-500 transition-colors flex items-center gap-1"
+              >
+                <FiTrash2 /> Delete
+              </button>
+            )}
           </div>
 
           {replyingTo === reply._id && (
-            <div className="flex gap-2 mt-2 flex-wrap">
+            <div className="flex gap-2 mt-2 flex-wrap items-center">
               <input
                 autoFocus
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Write a reply..."
-                className="dark:placeholder-gray-200 dark:text-gray-200 flex-1 px-3 py-1 rounded-full border dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-[#748dff] min-w-[150px]"
+                className="flex-1 px-4 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#748dff] focus:border-[#748dff]"
               />
               <button
                 onClick={() => handleReply(commentId, reply._id)}
-                className="text-indigo-500 cursor-pointer text-sm font-medium"
+                className="text-[#748dff] hover:text-indigo-500 font-bold text-xs px-2"
               >
                 Send
               </button>
               <button
                 onClick={() => setReplyingTo(null)}
-                className="text-red-500 cursor-pointer text-sm font-medium"
+                className="text-slate-400 hover:text-red-500 text-xs"
               >
-                ✕
+                Cancel
               </button>
             </div>
           )}
@@ -461,61 +488,71 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
     ));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-2 sm:px-4">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl min-w-[300px] h-[85vh] sm:h-[90vh] md:h-[85vh] rounded-xl shadow-lg flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:px-4">
+      <div className="bg-white dark:bg-slate-900 w-full max-w-2xl h-[85vh] sm:h-[80vh] rounded-t-[2rem] sm:rounded-3xl shadow-2xl border-t sm:border border-slate-200/50 dark:border-slate-800/80 flex flex-col overflow-hidden transition-all duration-300">
+        
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: "#748dff" }}>
-              <FiMessageCircle className="text-white text-lg" />
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#748dff]/10 text-[#748dff] flex items-center justify-center">
+              <FiMessageCircle className="text-xl" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white truncate">
-              Comments
-            </h3>
+            <div>
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-800 dark:text-white">
+                Comments
+              </h3>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                {comments.length} items on this thread
+              </p>
+            </div>
           </div>
 
-          <button onClick={onClose}>
-            <FiX className="cursor-pointer text-xl text-gray-500 hover:text-gray-700" />
+          <button 
+            onClick={onClose}
+            className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <FiX className="text-xl cursor-pointer" />
           </button>
         </div>
 
-
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-5 sm:space-y-6 bg-white dark:bg-slate-900 scrollbar-thin">
           {loading ? (
-            <div className="flex justify-center py-10 items-center gap-1">
-              <div className="w-4 h-4 rounded-full animate-bounce bg-[#748dff]"></div>
-              <div className="w-4 h-4 rounded-full animate-bounce delay-150 bg-[#748dff]"></div>
-              <div className="w-4 h-4 rounded-full animate-bounce delay-300 bg-[#748dff]"></div>
+            <div className="flex justify-center py-20 items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full animate-bounce bg-[#748dff]"></span>
+              <span className="w-2.5 h-2.5 rounded-full animate-bounce delay-100 bg-[#748dff]"></span>
+              <span className="w-2.5 h-2.5 rounded-full animate-bounce delay-200 bg-[#748dff]"></span>
             </div>
           ) : comments.length === 0 ? (
-            <div className="flex justify-center py-10 text-slate-500">
-              No comments yet. Be the first to comment.
+            <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500 gap-2">
+              <FiMessageCircle className="text-4xl opacity-50" />
+              <p className="text-sm font-medium">No comments yet. Start the conversation!</p>
             </div>
           ) : (
             comments.map((comment) => (
-              <div key={comment._id} className="flex gap-3 min-w-0">
+              <div key={comment._id} className="flex gap-2.5 sm:gap-3.5 min-w-0">
                 <img
                   src={comment.userId?.profilePicture?.url || "/avatar.png"}
-                  className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover flex-shrink-0 border border-slate-200 dark:border-slate-800"
+                  alt="Avatar"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="bg-slate-100 dark:bg-slate-800 rounded-xl px-3 py-2 break-words whitespace-normal">
-                    <p className="font-medium text-sm text-slate-800 dark:text-white break-words whitespace-normal">
+                  <div className="bg-slate-100 dark:bg-slate-800/60 rounded-2xl px-3 sm:px-4 py-2 sm:py-3 border border-slate-200/20 dark:border-slate-700/20 shadow-sm">
+                    <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
                       {comment.userId?.userName || "User"}
                     </p>
 
                     {editingCommentId === comment._id ? (
-                      <div className="flex gap-2 mt-1">
+                      <div className="flex gap-2 mt-2">
                         <input
                           autoFocus
                           value={editingText}
                           onChange={(e) => setEditingText(e.target.value)}
-                          className="dark:placeholder-gray-200 dark:text-gray-200 flex-1 px-3 py-1 rounded-full border dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-[#748dff]"
+                          className="flex-1 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#748dff] focus:border-[#748dff]"
                         />
                         <button
                           disabled={editingLoading}
-                          className="text-indigo-500 text-sm font-medium cursor-pointer"
+                          className="text-[#748dff] hover:text-indigo-500 font-bold text-xs cursor-pointer px-2"
                           onClick={async () => {
                             if (!editingText.trim()) return;
                             setEditingLoading(true);
@@ -543,64 +580,70 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
                             setEditingCommentId(null);
                             setEditingText("");
                           }}
-                          className="text-red-500 text-sm font-medium cursor-pointer"
+                          className="text-slate-400 hover:text-red-500 text-xs font-semibold"
                         >
-                          ✕
+                          Cancel
                         </button>
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-700 dark:text-slate-300 break-words whitespace-normal">
-                        {comment.comment}
+                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1.5 break-words leading-relaxed">
+                        {translatedComments[comment._id] || comment.comment}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex gap-4 mt-1 text-xs text-slate-500 flex-wrap">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1.5 mt-2 px-2 text-xs font-medium text-slate-500">
                     <button
                       onClick={() => handleLikeComment(comment._id)}
-                      className={`cursor-pointer flex items-center gap-1 ${comment.likedByCurrentUser ? "text-blue-500" : "hover:text-indigo-500"
-                        }`}
+                      className={`cursor-pointer flex items-center gap-1.5 transition-colors ${
+                        comment.likedByCurrentUser ? "text-[#748dff]" : "hover:text-[#748dff]"
+                      }`}
                     >
                       <FiThumbsUp />
-                      {comment.numberOfLikes}
+                      <span>{comment.numberOfLikes}</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleTranslate(comment._id, comment.comment)}
+                      disabled={translatingIds[comment._id]}
+                      className="cursor-pointer hover:text-[#748dff] transition-colors"
+                    >
+                      {translatingIds[comment._id] ? "Translating..." : translatedComments[comment._id] ? "Original" : "Translate"}
                     </button>
 
                     <button
                       onClick={() => setReplyingTo(comment._id)}
-                      className="cursor-pointer flex items-center gap-1 hover:text-indigo-500"
+                      className="cursor-pointer flex items-center gap-1.5 hover:text-[#748dff] transition-colors"
                     >
                       <FiMessageCircle />
-                      Reply
+                      <span>Reply</span>
                     </button>
 
-                    {/* Edit only for owner */}
-{comment.userId._id === post.currentUserId && (
-  <button
-    onClick={() => {
-      setEditingCommentId(comment._id);
-      setEditingText(comment.comment);
-    }}
-    className="cursor-pointer flex items-center gap-1 hover:text-indigo-500 text-xs"
-  >
-    Edit
-  </button>
-)}
+                    {comment.userId._id === post.currentUserId && (
+                      <button
+                        onClick={() => {
+                          setEditingCommentId(comment._id);
+                          setEditingText(comment.comment);
+                        }}
+                        className="cursor-pointer hover:text-[#748dff] transition-colors flex items-center gap-1"
+                      >
+                        <FiEdit3 /> Edit
+                      </button>
+                    )}
 
-{/* Delete for owner OR admin */}
-{(comment.userId._id === post.currentUserId || isAdmin) && (
-  <button
-    onClick={() => handleDelete(comment._id)}
-    className="cursor-pointer flex items-center gap-1 hover:text-red-500 text-xs"
-  >
-    <FiTrash2 /> Delete
-  </button>
-)}
-
+                    {(comment.userId._id === post.currentUserId || isAdmin) && (
+                      <button
+                        onClick={() => handleDelete(comment._id)}
+                        className="cursor-pointer hover:text-rose-600 text-rose-500 transition-colors flex items-center gap-1"
+                      >
+                        <FiTrash2 /> Delete
+                      </button>
+                    )}
 
                     {comment.replies && comment.replies.length > 0 && (
                       <button
                         onClick={() => toggleReplies(comment._id)}
-                        className="cursor-pointer flex items-center gap-1 hover:text-indigo-500"
+                        className="cursor-pointer text-indigo-500 hover:text-indigo-600 font-semibold"
                       >
                         {expandedReplies[comment._id] ? "Hide Replies" : `View Replies (${comment.replies.length})`}
                       </button>
@@ -610,25 +653,25 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
                   {expandedReplies[comment._id] && renderReplies(comment.replies || [], comment._id)}
 
                   {replyingTo === comment._id && (
-                    <div className="flex gap-2 mt-2 flex-wrap">
+                    <div className="flex gap-2 mt-3 flex-wrap items-center">
                       <input
                         autoFocus
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Write a reply..."
-                        className="flex-1 px-3 py-1 rounded-full border dark:border-slate-700 dark:placeholder-gray-200 dark:text-gray-200 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:border-[#748dff] min-w-[150px]"
+                        className="flex-1 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#748dff] focus:border-[#748dff]"
                       />
                       <button
                         onClick={() => handleReply(comment._id)}
-                        className="text-indigo-500 cursor-pointer text-sm font-medium"
+                        className="text-[#748dff] hover:text-indigo-500 font-bold text-xs px-2"
                       >
                         Send
                       </button>
                       <button
                         onClick={() => setReplyingTo(null)}
-                        className="text-red-500 cursor-pointer text-sm font-medium"
+                        className="text-slate-400 hover:text-red-500 text-xs"
                       >
-                        ✕
+                        Cancel
                       </button>
                     </div>
                   )}
@@ -639,26 +682,27 @@ const CommentModal = ({ post, onClose, onCommentAdded }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-gray-400 flex gap-2 flex-wrap">
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex gap-3 items-center">
           <input
             ref={inputRef}
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Write a comment..."
-            className="flex-1 px-4 py-2 rounded-full dark:text-gray-200 border dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:border-[#748dff] min-w-[150px] placeholder-gray-400 dark:placeholder-gray-200"
+            className="flex-1 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#748dff] focus:border-[#748dff] shadow-inner placeholder-slate-400 dark:placeholder-slate-500"
           />
 
           <button
             onClick={handleAddComment}
-            className="text-indigo-500 cursor-pointer font-medium"
+            className="p-2 sm:p-2.5 rounded-full bg-[#748dff] hover:bg-indigo-600 text-white transition-colors duration-300 shadow-md shadow-indigo-500/20 flex items-center justify-center cursor-pointer"
+            aria-label="Send Comment"
           >
-            Post
+            <FiSend className="text-sm" />
           </button>
         </div>
       </div>
 
       {toastMessage && (
-        <div className="fixed top-6 right-6 bg-[#748dff] text-white px-4 py-4 rounded-lg shadow-xl text-md z-[9999]">
+        <div className="fixed top-6 right-6 bg-[#748dff] text-white px-5 py-3 rounded-2xl shadow-xl text-sm z-[9999] border border-white/20 animate-fade-in">
           {toastMessage}
         </div>
       )}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineMail, AiOutlinePhone, AiOutlineCalendar, AiOutlineEye, AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
+import { Link } from "react-router-dom";
+import { AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineMail, AiOutlinePhone, AiOutlineCalendar, AiOutlineEye, AiOutlineEdit, AiOutlineDelete, AiOutlineFileText } from "react-icons/ai";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -21,6 +22,7 @@ const ViewComplaintList = () => {
   const [lastId, setLastId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("Any");
   const [view, setView] = useState("grid");
@@ -43,7 +45,7 @@ const ViewComplaintList = () => {
     async ({ reset = false } = {}) => {
       if (initialLoading || loadingMore) return;
 
-      if (reset && complaints.length === 0) {
+      if (reset) {
         setInitialLoading(true);
       } else {
         setLoadingMore(true);
@@ -106,63 +108,70 @@ const ViewComplaintList = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 dark:bg-slate-900 transition-colors duration-300">
+    <div className="min-h-screen p-3 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
       <h1 dir={language === "ur" ? "rtl" : "ltr"} className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">{t("complaint_management")}</h1>
 
       {/* SEARCH & FILTERS & VIEW TOGGLE */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-3 sm:space-y-0">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 flex-1">
 
           {/* SEARCH */}
-          <div className="relative">
+          <div className="relative w-full sm:w-72">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
             <input
               type="text"
+              value={searchInput}
               placeholder={t("search_placeholder")}
-              onChange={e => debouncedSearch(e.target.value)}
-              className="w-72 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
+              onChange={e => {
+                setSearchInput(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all"
             />
           </div>
 
-          {/* TYPE FILTER */}
-          <div dir={language === "ur" ? "rtl" : "ltr"} className="relative">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-              className="appearance-none w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
-            >
-              <option value="All">{t("type_filter")}</option>
-              <option value="general">{t("general")}</option>
-              <option value="special">{t("special")}</option>
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-              ▼
-            </span>
-          </div>
+          {/* FILTERS CONTAINER */}
+          <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
+            {/* TYPE FILTER */}
+            <div dir={language === "ur" ? "rtl" : "ltr"} className="relative flex-1 sm:flex-none">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+              <select
+                value={typeFilter}
+                onChange={e => setTypeFilter(e.target.value)}
+                className="appearance-none w-full sm:w-40 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
+              >
+                <option value="All">{t("type_filter")}</option>
+                <option value="general">{t("general")}</option>
+                <option value="special">{t("special")}</option>
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                ▼
+              </span>
+            </div>
 
-          {/* STATUS FILTER */}
-          <div dir={language === "ur" ? "rtl" : "ltr"} className="relative">
-            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="appearance-none w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
-            >
-              <option value="Any">{t("status_filter")}</option>
-              <option value="pending">{t("pending")}</option>
-              <option value="resolved">{t("resolved")}</option>
-              <option value="in progress">{t("in_progress")}</option>
-              <option value="rejected">{t("rejected")}</option>
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-              ▼
-            </span>
+            {/* STATUS FILTER */}
+            <div dir={language === "ur" ? "rtl" : "ltr"} className="relative flex-1 sm:flex-none">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-[#748dff] text-lg" />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="appearance-none w-full sm:w-44 pl-10 pr-10 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#748dff] focus:border-[#748dff] transition-all cursor-pointer"
+              >
+                <option value="Any">{t("status_filter")}</option>
+                <option value="pending">{t("pending")}</option>
+                <option value="resolved">{t("resolved")}</option>
+                <option value="in progress">{t("in_progress")}</option>
+                <option value="rejected">{t("rejected")}</option>
+              </select>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                ▼
+              </span>
+            </div>
           </div>
 
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex justify-end space-x-2">
           <button onClick={() => setView("grid")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "grid" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineAppstore size={20} /></button>
           <button onClick={() => setView("list")} className={`cursor-pointer p-2 rounded transition-colors duration-200 ${view === "list" ? "bg-[#748dff] text-white" : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-400 hover:text-white"}`}><AiOutlineUnorderedList size={20} /></button>
         </div>
@@ -174,9 +183,86 @@ const ViewComplaintList = () => {
           <LoadingSpinner size={60} color="#748dff" />
         </div>
       ) : complaints.length === 0 ? (
-        <div className="text-center mt-20 text-gray-500">
-          {t("no_complaints_found")}
-        </div>
+        (() => {
+          const isFiltered = search !== "" || typeFilter !== "All" || statusFilter !== "Any";
+          
+          if (isFiltered) {
+            let title = "";
+            let desc = "";
+            
+            if (search !== "") {
+              title = language === "ur" ? "کوئی مماثل نتائج نہیں ملے" : "No Matching Results";
+              desc = language === "ur" 
+                ? `ہمیں "${search}" سے مطابقت رکھنے والی کوئی شکایت نہیں ملی۔`
+                : `We couldn't find any complaints matching "${search}".`;
+            } else if (statusFilter !== "Any") {
+              const statusUr = statusFilter === "in progress" ? "زیر کار" : statusFilter === "resolved" ? "حل شدہ" : statusFilter === "rejected" ? "مسترد شدہ" : "زیر التواء";
+              const statusEn = statusFilter.toLowerCase() === "in progress" ? "in-progress" : statusFilter;
+              title = language === "ur" 
+                ? `کوئی ${statusUr} شکایت نہیں ملی`
+                : `No ${statusEn} complaints yet.`;
+              desc = language === "ur"
+                ? `اس وقت آپ کی کوئی بھی شکایت "${statusUr}" کی حیثیت میں نہیں ہے۔`
+                : `You don't have any complaints marked as ${statusEn} at the moment.`;
+            } else if (typeFilter !== "All") {
+              const typeUr = typeFilter === "general" ? "عام" : "خصوصی";
+              title = language === "ur"
+                ? `کوئی ${typeUr} شکایت نہیں ملی`
+                : `No ${typeFilter} complaints found.`;
+              desc = language === "ur"
+                ? `آپ نے "${typeUr}" قسم کی کوئی شکایت درج نہیں کی ہے۔`
+                : `You haven't submitted any complaints of type "${typeFilter}".`;
+            }
+
+            return (
+              <div className="flex flex-col items-center justify-center mt-16 text-center transition-all duration-300">
+                <div className="w-16 h-16 bg-[#f0f4ff]/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5 text-[#748dff] animate-pulse">
+                  <FiFilter size={32} />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                  {title}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+                  {desc}
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                    setTypeFilter("All");
+                    setStatusFilter("Any");
+                  }}
+                  className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#748dff]/10 hover:bg-[#748dff]/20 text-[#748dff] font-semibold rounded-lg transition-all duration-200"
+                >
+                  {language === "ur" ? "فلٹرز صاف کریں" : "Clear Filters"}
+                </button>
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex flex-col items-center justify-center mt-16 text-center transition-all duration-300">
+              <div className="w-16 h-16 bg-[#f0f4ff]/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-5 text-[#748dff] animate-pulse">
+                <AiOutlineFileText size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                {t("no_complaints_found")}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-sm">
+                {language === "ur" 
+                  ? "آپ نے ابھی تک کوئی شکایت درج نہیں کی ہے۔ آپ کی تمام درج شدہ شکایتیں یہاں نظر آئیں گی۔"
+                  : "It looks like you haven't submitted any complaints yet. All the complaints you file will be tracked and displayed here."}
+              </p>
+              <Link
+                to="/user/submitComplaint"
+                className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#748dff] hover:bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:shadow-indigo-500/20 active:scale-98 transition-all duration-200"
+              >
+                <AiOutlineFileText size={18} />
+                {language === "ur" ? "شکایت درج کریں" : "Submit a Complaint"}
+              </Link>
+            </div>
+          );
+        })()
       ) : (<>
 
         {/* GRID VIEW */}
@@ -226,7 +312,7 @@ const ViewComplaintList = () => {
                   </div>
                   <div dir={language === "ur" ? "rtl" : "ltr"} >
                     <p className="flex items-center gap-2 mt-6 text-sm "> {t("reason")}:</p>
-                    <p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason}</p>
+                    <p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason === "special" ? t("special_request") : t(c.reason)}</p>
                   </div>
                 </div>
 
@@ -337,7 +423,7 @@ const ViewComplaintList = () => {
 
                     {/* REASON */}
                     <td className="px-6 py-4 max-w-xs truncate">
-                      {c.reason}
+                      {c.reason === "special" ? t("special_request") : t(c.reason)}
                     </td>
 
                     {/* SUBMITTED */}
@@ -447,3 +533,4 @@ const ViewComplaintList = () => {
 };
 
 export default ViewComplaintList;
+
