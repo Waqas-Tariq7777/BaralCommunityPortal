@@ -23,20 +23,41 @@ const Chatbot = () => {
     const startListening = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorderRef.current = new MediaRecorder(stream);
+            
+            // Detect browser supported MimeType (Safari/iOS support audio/mp4 or audio/aac)
+            let selectedMimeType = "audio/webm";
+            if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported) {
+                if (MediaRecorder.isTypeSupported("audio/webm")) {
+                    selectedMimeType = "audio/webm";
+                } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+                    selectedMimeType = "audio/mp4";
+                } else if (MediaRecorder.isTypeSupported("audio/aac")) {
+                    selectedMimeType = "audio/aac";
+                } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+                    selectedMimeType = "audio/ogg";
+                } else {
+                    selectedMimeType = "";
+                }
+            }
+
+            const options = selectedMimeType ? { mimeType: selectedMimeType } : undefined;
+            mediaRecorderRef.current = new MediaRecorder(stream, options);
             audioChunksRef.current = [];
 
             mediaRecorderRef.current.ondataavailable = (event) => {
-                audioChunksRef.current.push(event.data);
+                if (event.data && event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
             };
 
             mediaRecorderRef.current.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+                const actualMimeType = mediaRecorderRef.current?.mimeType || selectedMimeType || "audio/mp4";
+                const audioBlob = new Blob(audioChunksRef.current, { type: actualMimeType });
                 const reader = new FileReader();
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = async () => {
                     const base64Audio = reader.result.split(",")[1];
-                    handleSend(null, base64Audio, "audio/webm");
+                    handleSend(null, base64Audio, actualMimeType);
                 };
                 
                 // Stop all tracks to release the microphone
@@ -105,9 +126,22 @@ const Chatbot = () => {
         try {
             const baseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
             
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            try {
+                const storedUser = localStorage.getItem("user");
+                if (storedUser) {
+                    const parsed = JSON.parse(storedUser);
+                    if (parsed?.accessToken) {
+                        reqHeaders['Authorization'] = `Bearer ${parsed.accessToken}`;
+                    }
+                }
+            } catch (e) {
+                console.error("Error setting chatbot auth header:", e);
+            }
+
             const response = await fetch(`${baseUrl}/api/chatbot/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: reqHeaders,
                 body: JSON.stringify({
                     message: textToSend,
                     history: chatHistory,
@@ -248,7 +282,7 @@ const Chatbot = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 40, scale: 0.8 }}
                         transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                        className="w-[calc(100vw-32px)] sm:w-[360px] h-[calc(100vh-32px)] sm:h-[550px] max-h-[550px] bg-slate-50 dark:bg-slate-900 rounded-[32px] shadow-[0_20px_40px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.1)] flex flex-col overflow-hidden relative"
+                        className="w-[calc(100vw-32px)] sm:w-[360px] h-[calc(100dvh-32px)] sm:h-[550px] max-h-[550px] bg-slate-50 dark:bg-slate-900 rounded-[32px] shadow-[0_20px_40px_rgba(0,0,0,0.2),0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.1)] flex flex-col overflow-hidden relative"
                     >
                         {/* Decorative Background Glows */}
                         <div className="absolute top-[-100px] left-[-100px] w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px] pointer-events-none"></div>
