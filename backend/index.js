@@ -25,14 +25,20 @@ dotenv.config({ path: "./.env" });
 const app = express();
 
 // CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim()) 
+  : [];
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        // allow requests with no origin (like mobile apps, curl)
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
         callback(null, true);
       } else {
+        // Allow all vercel preview/deployment URLs dynamically if needed
+        if (origin.endsWith(".vercel.app")) {
+          return callback(null, true);
+        }
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -48,6 +54,31 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.set('json spaces', 2);
 
+// MongoDB Connection helper for Serverless & Local environments
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected || mongoose.connection.readyState >= 1) {
+    return;
+  }
+  try {
+    const connectionInstance = await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = true;
+    console.log("MONGODB Connected Successfully !! Host:", connectionInstance.connection.host);
+  } catch (error) {
+    console.log("MONGODB Connection Error:", error);
+    throw error;
+  }
+};
+
+// Middleware to ensure DB is connected before processing requests on Vercel/Serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Database connection failed" });
+  }
+});
 
 // Routes
 app.use('/api/admin', adminRoutes);
@@ -59,10 +90,13 @@ app.use('/api/message', messageRoutes);
 app.use('/api/guest', guestRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 
-
 // Test route
 app.get("/test", (req, res) => {
   res.send("Server working");
+});
+
+app.get("/", (req, res) => {
+  res.send("WAPDA Community Portal API Backend is running");
 });
 
 // Global Error Handler
@@ -75,16 +109,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB and start server
-const port = process.env.PORT || 4000;
-
-mongoose.connect(process.env.MONGODB_URI)
-  .then((connectionInstance) => {
-    console.log("MONGODB Connected Successfully !! Host:", connectionInstance.connection.host);
+// Start local server if not running on Vercel
+if (!process.env.VERCEL) {
+  const port = process.env.PORT || 4000;
+  connectDB().then(() => {
     app.listen(port, () => {
       console.log("Server is successfully running on port:", port);
     });
-  })
-  .catch((error) => {
-    console.log("MONGODB Connection Error:", error);
+  }).catch(err => {
+    console.error("Failed to start server due to DB connection error:", err);
   });
+}
+
+export default app;
