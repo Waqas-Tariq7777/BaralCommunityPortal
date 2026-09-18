@@ -7,14 +7,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load the Q&A context from V3.json
-const contextPath = path.join(__dirname, "../../V3.json");
+const possiblePaths = [
+  path.join(__dirname, "../V3.json"),
+  path.join(process.cwd(), "V3.json"),
+  path.join(__dirname, "../../V3.json")
+];
+
 let trainingContext = "";
 
-try {
-  const v3Data = JSON.parse(fs.readFileSync(contextPath, "utf-8"));
-  trainingContext = v3Data.map(item => `Question: ${item.question}\nAnswer: ${item.answer}`).join("\n\n");
-} catch (error) {
-  console.error("Error loading V3.json context:", error);
+for (const p of possiblePaths) {
+  if (fs.existsSync(p)) {
+    try {
+      const v3Data = JSON.parse(fs.readFileSync(p, "utf-8"));
+      trainingContext = v3Data.map(item => `Question: ${item.question}\nAnswer: ${item.answer}`).join("\n\n");
+      break;
+    } catch (error) {
+      console.error(`Error reading V3.json at ${p}:`, error);
+    }
+  }
 }
 
 export const getChatResponse = async (req, res) => {
