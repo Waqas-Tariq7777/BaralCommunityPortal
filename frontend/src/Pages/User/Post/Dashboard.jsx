@@ -134,19 +134,59 @@ const PostFeed = () => {
             </span>
           </div>
 
-          <div className="relative w-full overflow-x-auto scrollbar-none py-1">
-            <div
-              className={`flex gap-4 ${
-                importantPosts.length > 2 ? "marquee-track" : "justify-start md:justify-center px-4 md:px-0"
-              }`}
-            >
-              {(importantPosts.length > 2 ? [...importantPosts, ...importantPosts] : importantPosts).map((post, idx) => {
+          {/* 1 Announcement: Full width card */}
+          {importantPosts.length === 1 && (
+            <div className="w-full">
+              {(() => {
+                const post = importantPosts[0];
+                const color = colors[0];
+                return (
+                  <div
+                    key={post._id || "single"}
+                    onClick={() => scrollToPost(post._id)}
+                    className={`cursor-pointer w-full p-5 sm:p-6 rounded-2xl text-white bg-gradient-to-br ${color} shadow-lg hover:shadow-xl hover:scale-[0.99] transition-all duration-300 relative overflow-hidden flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group`}
+                  >
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white uppercase tracking-wider backdrop-blur-sm">
+                          {t("announcement") || "Notice"}
+                        </span>
+                        <span className="text-xs text-white/80 flex items-center gap-1">
+                          <AiOutlineNotification className="text-sm text-white/90 group-hover:rotate-12 transition-transform" />
+                          {t("posted_recently")}
+                        </span>
+                      </div>
+
+                      <h3 className="font-extrabold text-base sm:text-lg text-white break-words line-clamp-1 leading-snug">
+                        {post.title?.replace(/<[^>]+>/g, "")}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-white/90 break-words line-clamp-2 leading-relaxed">
+                        {post.content?.replace(/<[^>]+>/g, "")}
+                      </p>
+                    </div>
+
+                    <div className="flex-shrink-0 self-end sm:self-center">
+                      <span className="px-4 py-2 rounded-xl bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs flex items-center gap-1.5 backdrop-blur-sm transition-all group-hover:translate-x-1">
+                        {t("view_details") || "Details"} &rarr;
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* 2 Announcements: Grid layout side by side */}
+          {importantPosts.length === 2 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              {importantPosts.map((post, idx) => {
                 const color = colors[idx % colors.length];
                 return (
                   <div
                     key={post._id || idx}
                     onClick={() => scrollToPost(post._id)}
-                    className={`cursor-pointer flex-shrink-0 w-[280px] sm:w-[340px] p-5 rounded-2xl text-white bg-gradient-to-br ${color} shadow-lg hover:shadow-xl hover:scale-95 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group`}
+                    className={`cursor-pointer w-full p-5 sm:p-6 rounded-2xl text-white bg-gradient-to-br ${color} shadow-lg hover:shadow-xl hover:scale-[0.99] transition-all duration-300 relative overflow-hidden flex flex-col justify-between group min-h-[160px]`}
                   >
                     <div>
                       <div className="flex justify-between items-center gap-2 mb-2.5">
@@ -155,12 +195,12 @@ const PostFeed = () => {
                         </span>
                         <AiOutlineNotification className="text-sm text-white/80 group-hover:rotate-12 transition-transform" />
                       </div>
-                      
-                      <h3 className="font-extrabold text-sm text-white mb-1.5 break-words line-clamp-1 leading-snug">
+
+                      <h3 className="font-extrabold text-base text-white mb-1.5 break-words line-clamp-1 leading-snug">
                         {post.title?.replace(/<[^>]+>/g, "")}
                       </h3>
 
-                      <p className="text-xs text-white/90 break-words line-clamp-2 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-white/90 break-words line-clamp-2 leading-relaxed">
                         {post.content?.replace(/<[^>]+>/g, "")}
                       </p>
                     </div>
@@ -175,7 +215,66 @@ const PostFeed = () => {
                 );
               })}
             </div>
-          </div>
+          )}
+
+          {/* 3+ Announcements: Continuous seamless marquee loop */}
+          {importantPosts.length >= 3 && (() => {
+            let displayList = [...importantPosts];
+            while (displayList.length < 6) {
+              displayList = [...displayList, ...importantPosts];
+            }
+            const animDuration = Math.max(25, displayList.length * 4);
+
+            const renderCardItem = (post, idx, keyPrefix) => {
+              const color = colors[idx % colors.length];
+              return (
+                <div
+                  key={`${keyPrefix}-${post._id || idx}-${idx}`}
+                  onClick={() => scrollToPost(post._id)}
+                  className={`cursor-pointer flex-shrink-0 w-[280px] sm:w-[340px] p-5 rounded-2xl text-white bg-gradient-to-br ${color} shadow-lg hover:shadow-xl hover:scale-95 transition-all duration-300 relative overflow-hidden flex flex-col justify-between group`}
+                >
+                  <div>
+                    <div className="flex justify-between items-center gap-2 mb-2.5">
+                      <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-white/20 text-white uppercase tracking-wider backdrop-blur-sm">
+                        {t("announcement") || "Notice"}
+                      </span>
+                      <AiOutlineNotification className="text-sm text-white/80 group-hover:rotate-12 transition-transform" />
+                    </div>
+
+                    <h3 className="font-extrabold text-sm text-white mb-1.5 break-words line-clamp-1 leading-snug">
+                      {post.title?.replace(/<[^>]+>/g, "")}
+                    </h3>
+
+                    <p className="text-xs text-white/90 break-words line-clamp-2 leading-relaxed">
+                      {post.content?.replace(/<[^>]+>/g, "")}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/20 text-[10px] text-white/85">
+                    <span>{t("posted_recently")}</span>
+                    <span className="text-white font-extrabold group-hover:underline text-[10px] flex items-center gap-0.5">
+                      {t("view_details") || "Details"} &rarr;
+                    </span>
+                  </div>
+                </div>
+              );
+            };
+
+            return (
+              <div className="relative w-full overflow-hidden py-1">
+                <div className="marquee-track flex" style={{ animationDuration: `${animDuration}s` }}>
+                  {/* Set 1 */}
+                  <div className="flex gap-4 pr-4 shrink-0">
+                    {displayList.map((post, idx) => renderCardItem(post, idx, "set1"))}
+                  </div>
+                  {/* Set 2 (Identical duplicate for seamless continuous loop) */}
+                  <div className="flex gap-4 pr-4 shrink-0" aria-hidden="true">
+                    {displayList.map((post, idx) => renderCardItem(post, idx, "set2"))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
