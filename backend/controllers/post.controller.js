@@ -5,9 +5,12 @@ import { Post } from "../models/post.model.js";
 import cloudinary from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 import { User } from "../models/user.model.js";
+import { Complaint } from "../models/complaint.model.js";
+import { Message } from "../models/message.model.js";
+
 // Add a new post (Admin only)
 const addPost = asyncHandler(async (req, res) => {
-  const { title, content, isImportant } = req.body;
+  const { title, content, isImportant, isResolutionProof, targetUserEmail, complaintId } = req.body;
 
   if (!title || !content) {
     throw new ApiError(400, "Title and content are required");
@@ -33,7 +36,27 @@ const addPost = asyncHandler(async (req, res) => {
   }
 
   // 🔴 IMPORTANT ANNOUNCEMENT LOGIC
-  const importantFlag = isImportant === "true";
+  const importantFlag = isImportant === "true" || isImportant === true;
+  const resolutionProofFlag = isResolutionProof === "true" || isResolutionProof === true;
+
+  let targetUser = null;
+  let targetComplaint = null;
+
+  if (resolutionProofFlag) {
+    if (!targetUserEmail) {
+      throw new ApiError(400, "Target user email is required for resolution proof posts");
+    }
+    targetUser = await User.findOne({ email: targetUserEmail.trim() });
+    if (!targetUser) {
+      throw new ApiError(404, "Target user with provided email not found");
+    }
+
+    if (complaintId) {
+      targetComplaint = await Complaint.findById(complaintId);
+    } else {
+      targetComplaint = await Complaint.findOne({ userId: targetUser._id }).sort({ createdAt: -1 });
+    }
+  }
 
   const post = await Post.create({
     adminId: req.user._id,
@@ -42,10 +65,29 @@ const addPost = asyncHandler(async (req, res) => {
     images,
     isImportant: importantFlag,
     importantOrder: importantFlag ? new Date() : null,
+    isResolutionProof: resolutionProofFlag,
+    targetUser: targetUser ? targetUser._id : null,
+    targetUserEmail: targetUser ? targetUser.email : (targetUserEmail || null),
+    complaintId: targetComplaint ? targetComplaint._id : (complaintId || null),
     likes: [],
     comments: [],
     shares: 0,
   });
+
+  if (resolutionProofFlag && targetComplaint) {
+    targetComplaint.resolutionProofPost = post._id;
+    await targetComplaint.save();
+  }
+
+  // Send notification message to concerned user
+  if (resolutionProofFlag && targetUser) {
+    await Message.create({
+      sender: req.user._id,
+      recipient: targetUser._id,
+      email: targetUser.email,
+      message: "Proof has been uploaded for your complaint. Please check and verify it.",
+    });
+  }
 
   return res
     .status(201)
@@ -72,12 +114,13 @@ const getPostsForUser = asyncHandler(async (req, res) => {
 
     const posts = await Post.find(query)
         .populate("adminId", "userName email profilePicture")
+        .populate("targetUser", "userName email")
         .populate("comments.userId", "userName profilePicture")
         .populate("comments.replies.userId", "userName profilePicture")
         .populate("sharedBy", "userName profilePicture")
         .populate("originalPost", "title content images adminId")
         .sort({ _id: -1 })
-    .limit(parseInt(limit));
+        .limit(parseInt(limit));
 
 if (!posts.length) {
     return res.status(200).json(
@@ -740,6 +783,78 @@ const deletePost = asyncHandler(async (req, res) => {
   );
 });
 
+// Verify resolution for a proof post (Concerned user only)
+const verifyResolutionPost = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rating, feedback, isSatisfied } = req.body;
+
+  const post = await Post.findById(id);
+  if (!post) throw new ApiError(404, "Post not found");
+
+  if (!post.isResolutionProof) {
+    throw new ApiError(400, "This post is not a resolution proof post");
+  }
+
+  const isTarget = (post.targetUser && post.targetUser.toString() === req.user._id.toString()) ||
+                   (post.targetUserEmail && post.targetUserEmail.toLowerCase() === req.user.email.toLowerCase());
+
+  if (!isTarget) {
+    throw new ApiError(403, "Only the concerned user can verify this resolution");
+  }
+
+  const numericRating = Number(rating) || 5;
+
+  post.resolutionVerification = {
+    isVerified: true,
+    verifiedAt: new Date(),
+    isSatisfied: isSatisfied !== undefined ? Boolean(isSatisfied) : true,
+    rating: numericRating,
+    feedback: feedback || "",
+  };
+
+  await post.save();
+
+  if (post.complaintId) {
+    const complaint = await Complaint.findById(post.complaintId);
+    if (complaint) {
+      complaint.resolutionVerified = true;
+      complaint.resolutionRating = numericRating;
+      complaint.resolutionFeedback = feedback || "";
+      complaint.resolutionVerifiedAt = new Date();
+      if (isSatisfied !== false) {
+        complaint.status = "resolved";
+      }
+      await complaint.save();
+    }
+  }
+
+  return res.status(200).json(new ApiResponse(200, post, "Resolution verification submitted successfully"));
+});
+
+// Get unread verified proof posts count for admin
+const getUnreadVerifiedCount = asyncHandler(async (req, res) => {
+  const count = await Post.countDocuments({
+    isResolutionProof: true,
+    "resolutionVerification.isVerified": true,
+    "resolutionVerification.isReadByAdmin": { $ne: true },
+  });
+  return res.status(200).json(new ApiResponse(200, count, "Unread verified count fetched successfully"));
+});
+
+// Mark verified proof post as read by admin
+const markVerifiedPostAsRead = asyncHandler(async (req, res) => {
+  const { postId } = req.params;
+  const post = await Post.findById(postId);
+  if (!post) throw new ApiError(404, "Post not found");
+
+  if (post.resolutionVerification && post.resolutionVerification.isVerified) {
+    post.resolutionVerification.isReadByAdmin = true;
+    await post.save();
+  }
+
+  return res.status(200).json(new ApiResponse(200, post, "Verified post marked as read"));
+});
+
 export {
     addPost,
     getPostsForUser,
@@ -755,5 +870,8 @@ export {
     sharePost,
     unsharePost,
     editPost,
-    deletePost
+    deletePost,
+    verifyResolutionPost,
+    getUnreadVerifiedCount,
+    markVerifiedPostAsRead
 };

@@ -41,6 +41,11 @@ const complaintSchema = new Schema(
       required: true,
     },
     isReadByAdmin: { type: Boolean, default: false },
+    resolutionProofPost: { type: mongoose.Schema.Types.ObjectId, ref: "Post", default: null },
+    resolutionRating: { type: Number, default: null },
+    resolutionFeedback: { type: String, default: "" },
+    resolutionVerified: { type: Boolean, default: false },
+    resolutionVerifiedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

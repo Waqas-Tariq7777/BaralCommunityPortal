@@ -182,7 +182,24 @@ flex flex-col gap-6 overflow-y-auto"
             </p>
           </div>
 
-
+          {/* RESIDENT RESOLUTION VERIFICATION & RATING BOX */}
+          {(complaint.resolutionVerified || complaint.resolutionRating) && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 rounded-xl shadow-sm space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <FiStar className="fill-amber-400 text-amber-400 text-base" /> Resident Verification & Rating
+                </span>
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-2.5 py-0.5 rounded-full">
+                  ★ {complaint.resolutionRating || 5} / 5
+                </span>
+              </div>
+              {complaint.resolutionFeedback && (
+                <p className="text-xs text-amber-900 dark:text-amber-200 italic">
+                  "{complaint.resolutionFeedback}"
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* FOOTER BUTTONS */}

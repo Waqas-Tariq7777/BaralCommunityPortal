@@ -117,11 +117,11 @@ const PostFeed = () => {
   };
 
   return (
-    <div className="min-h-screen p-2 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden p-2 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
 
       {/* 🚨 IMPORTANT ANNOUNCEMENTS */}
       {!isAdmin && importantPosts.length > 0 && (
-        <div className="mb-8 w-full xl:w-[1050px] mx-auto rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-indigo-50/40 to-slate-50/40 dark:from-slate-900/40 dark:to-slate-800/40 border border-slate-200/60 dark:border-slate-800/80 shadow-md backdrop-blur-md relative overflow-hidden">
+        <div className="mb-8 w-full max-w-full xl:max-w-[1050px] mx-auto rounded-3xl p-4 sm:p-6 bg-gradient-to-br from-indigo-50/40 to-slate-50/40 dark:from-slate-900/40 dark:to-slate-800/40 border border-slate-200/60 dark:border-slate-800/80 shadow-md backdrop-blur-md relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h2 dir={language === "ur" ? "rtl" : "ltr"} className="text-base font-extrabold flex items-center gap-2.5 text-[#748dff]">
               <div className="p-2 rounded-xl bg-[#748dff]/10 text-[#748dff] flex items-center justify-center">
@@ -280,7 +280,7 @@ const PostFeed = () => {
 
       {/* Search */}
       <div  className="flex items-center mb-6">
-        <div className="relative w-full xl:w-[850px] mx-auto">
+        <div className="relative w-full max-w-[850px] mx-auto">
           <FiSearch  className="absolute left-3 top-3 text-slate-400 dark:text-slate-300" />
           <input
             type="text"

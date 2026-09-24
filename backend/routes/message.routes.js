@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { sendMessage, getInbox, editMessage, deleteMessage, getAdminMessages, getUnreadCount, markAsRead, replyToMessage, editReply, deleteReply, softDeleteMessage } from "../controllers/message.controller.js";
+import { sendMessage, getInbox, editMessage, deleteMessage, getAdminMessages, getUnreadCount, markAsRead, replyToMessage, editReply, deleteReply, softDeleteMessage, getUserNotifications, markUserNotificationAsRead } from "../controllers/message.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { isAdmin } from "../middlewares/isAdmin.middleware.js";
 const router = Router();
 
 router.route("/send").post(verifyJWT, sendMessage);
 router.route("/inbox").get(verifyJWT, getInbox);
+router.route("/user-notifications").get(verifyJWT, getUserNotifications);
+router.route("/user-notifications/:messageId/read").patch(verifyJWT, markUserNotificationAsRead);
 router.route("/edit/:messageId").put(verifyJWT, editMessage);
 router.route("/delete/:messageId").delete(verifyJWT, deleteMessage);
 router.route("/adminGetMessages").get(verifyJWT,isAdmin, getAdminMessages);

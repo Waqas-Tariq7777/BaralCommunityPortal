@@ -26,7 +26,7 @@ const ComplaintCard = ({ complaint, onView, markComplaintAsRead }) => {
         <p className="flex text-sm items-center gap-2"><FiPhone className="text-green-300 text-lg dark:text-[#748dff]" /> {complaint.userId?.mobileNumber}</p>
         <p className="flex text-sm items-center gap-2"><FiClock className="text-pink-300 text-lg dark:text-[#748dff]" /> {moment(complaint.createdAt).format("MMMM D, YYYY")}</p>
         <div className="flex flex-col w-[100%] gap-2 mt-2">
-          <div className="flex items-center gap-2"><FiLayers className="text-lg text-[#6e11b0]" /><span className="px-2 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold">{complaint.complaintType}</span></div>
+          <div className="flex items-center gap-2"><FiLayers className="text-lg text-[#6e11b0] shrink-0" /><span className="px-2.5 py-1 rounded-full text-[#6e11b0] bg-[#f3e8ff] text-xs font-semibold max-w-full truncate whitespace-nowrap">{complaint.complaintType}</span></div>
         </div>
         <div>
           <p className="flex items-center gap-2 mt-6 text-sm">Reason:</p>
@@ -44,7 +44,7 @@ const ComplaintCard = ({ complaint, onView, markComplaintAsRead }) => {
         </button>
 
         {!isRead && (
-          <span className="absolute top-1 right-3 px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-red-500 text-white animate-pulse">
+          <span className="absolute top-1 right-3 px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-red-500 text-white animate-pulse whitespace-nowrap">
             New
           </span>
         )}

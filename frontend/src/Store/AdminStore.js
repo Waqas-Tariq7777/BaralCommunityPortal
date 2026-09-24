@@ -162,4 +162,16 @@ getMessagesCount: async () => {
     return 0;
   }
 },
+
+getResolutionProofStats: async () => {
+  try {
+    const res = await axios.get(`${baseUrl}/api/admin/getResolutionProofStats`, {
+      withCredentials: true,
+    });
+    return res.data.data; // { totalProofs, verifiedProofs }
+  } catch (err) {
+    console.error("Failed to fetch resolution proof stats:", err);
+    return { totalProofs: 0, verifiedProofs: 0 };
+  }
+},
 }));

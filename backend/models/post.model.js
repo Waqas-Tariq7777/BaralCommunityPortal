@@ -48,7 +48,19 @@ const postSchema = new Schema(
     shares: { type: Number, default: 0 }, // ✅ ADD THIS
     isSharedPost: { type: Boolean, default: false },
     originalPost: { type: Schema.Types.ObjectId, ref: "Post" },
-    sharedBy: { type: Schema.Types.ObjectId, ref: "User" }
+    sharedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    isResolutionProof: { type: Boolean, default: false },
+    targetUser: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    targetUserEmail: { type: String, default: null },
+    complaintId: { type: Schema.Types.ObjectId, ref: "Complaint", default: null },
+    resolutionVerification: {
+      isVerified: { type: Boolean, default: false },
+      verifiedAt: { type: Date, default: null },
+      isSatisfied: { type: Boolean, default: null },
+      rating: { type: Number, default: 0 },
+      feedback: { type: String, default: "" },
+      isReadByAdmin: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );

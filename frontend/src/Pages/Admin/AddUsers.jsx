@@ -9,6 +9,7 @@ const initialFormData = {
   userName: "",
   email: "",
   password: "",
+  confirmPassword: "",
   houseNumber: "",
   mobileNumber: "",
   designation: "",
@@ -19,6 +20,7 @@ const RecordUpload = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState(null);
@@ -51,6 +53,9 @@ const RecordUpload = () => {
     if (!formData.password) errors.password = "Password is required";
     else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}/.test(formData.password))
       errors.password = "Password must have uppercase, lowercase, number & min 6 chars";
+    if (!formData.confirmPassword) errors.confirmPassword = "Confirm password is required";
+    else if (formData.confirmPassword !== formData.password)
+      errors.confirmPassword = "Passwords do not match";
     if (!formData.houseNumber) errors.houseNumber = "House number is required";
     if (!formData.mobileNumber) errors.mobileNumber = "Mobile number is required";
     if (!formData.designation) errors.designation = "Designation is required";
@@ -63,7 +68,8 @@ const RecordUpload = () => {
     if (!validateForm()) return;
     setUploading(true); setError(null); setUploadResult(null);
     try {
-      await addUser(formData);
+      const { confirmPassword, ...payload } = formData;
+      await addUser(payload);
       setUploadResult({ message: "User record created successfully" });
       setFormData(initialFormData);
     } catch (err) {
@@ -177,6 +183,7 @@ const RecordUpload = () => {
                 <FormInput label="Name" required value={formData.userName} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"userName"}})} error={formErrors.userName}/>
                 <FormInput label="Email" required value={formData.email} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"email"}})} error={formErrors.email} type="email"/>
                 <FormInput label="Password" required value={formData.password} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"password"}})} error={formErrors.password} type={showPassword?"text":"password"} showPasswordToggle onTogglePassword={()=>setShowPassword(!showPassword)}/>
+                <FormInput label="Confirm Password" required value={formData.confirmPassword} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"confirmPassword"}})} error={formErrors.confirmPassword} type={showConfirmPassword?"text":"password"} showPasswordToggle onTogglePassword={()=>setShowConfirmPassword(!showConfirmPassword)}/>
                 <FormInput label="House Number" required value={formData.houseNumber} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"houseNumber"}})} error={formErrors.houseNumber}/>
                 <FormInput label="Mobile Number" required value={formData.mobileNumber} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"mobileNumber"}})} error={formErrors.mobileNumber}/>
                 <FormInput label="Designation" required value={formData.designation} onChange={(e)=>handleInputChange({...e, target:{...e.target,name:"designation"}})} error={formErrors.designation}/>

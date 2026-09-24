@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiShield } from "react-icons/fi";
 import { FaRegMessage } from "react-icons/fa6";
 import { usePostStore } from "../../../Store/PostStore.js";
 import PostCard from "../../../Components/User/Post/PostCard.jsx";
 import PostImageModal from "../../../Components/User/Post/PostImageModal.jsx";
 import LoadingSpinner from "../../../Components/LoadingSpinner.jsx";
 import { debounce } from "lodash";
+import axios from "axios";
 
 const PostFeed = () => {
   const [posts, setPosts] = useState([]);
@@ -16,8 +17,22 @@ const PostFeed = () => {
   const [modalImages, setModalImages] = useState(null);
   const [modalIndex, setModalIndex] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [unreadVerifiedCount, setUnreadVerifiedCount] = useState(0);
   const loaderRef = useRef(null);
   const didInitialLoad = useRef(false);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+        const res = await axios.get(`${baseUrl}/api/post/admin/unread-verified-count`, { withCredentials: true });
+        setUnreadVerifiedCount(res.data?.data || 0);
+      } catch (err) {
+        console.error("Failed to fetch unread verified count:", err);
+      }
+    };
+    fetchUnreadCount();
+  }, [posts]);
 
   const getPosts = usePostStore((state) => state.getPostsForAdmin);
 
@@ -110,6 +125,19 @@ const PostFeed = () => {
 
   return (
     <div className="min-h-screen p-2 sm:p-6 dark:bg-slate-900 transition-colors duration-300">
+      {/* 🛡️ Unread Verified Proof Posts Banner */}
+      {unreadVerifiedCount > 0 && (
+        <div className="w-full xl:w-[850px] mx-auto mb-4 p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 shadow-sm">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 min-w-0">
+            <FiShield className="text-amber-600 dark:text-amber-400 text-base sm:text-lg shrink-0" />
+            <span className="truncate">{unreadVerifiedCount} Proofs Verified by Residents</span>
+          </div>
+          <span className="text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 whitespace-nowrap shrink-0">
+            New Ratings Received
+          </span>
+        </div>
+      )}
+
       {/* Search */}
       <div className="flex items-center mb-6">
         <div className="relative w-full xl:w-[850px] mx-auto">

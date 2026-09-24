@@ -11,7 +11,8 @@ const AddPost = () => {
   const contentRef = useRef(null);
   const [color, setColor] = useState("#000000");
   const [isImportant, setIsImportant] = useState(false);
-
+  const [isResolutionProof, setIsResolutionProof] = useState(false);
+  const [targetUserEmail, setTargetUserEmail] = useState("");
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -44,10 +45,19 @@ const AddPost = () => {
       return;
     }
 
+    if (isResolutionProof && !targetUserEmail.trim()) {
+      toast.error("Please enter the concerned user's email for resolution proof");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title.trim());
     formData.append("content", content);
     formData.append("isImportant", isImportant);
+    formData.append("isResolutionProof", isResolutionProof);
+    if (isResolutionProof) {
+      formData.append("targetUserEmail", targetUserEmail.trim());
+    }
 
     images.forEach((img) => {
       formData.append("images", img);
@@ -56,8 +66,11 @@ const AddPost = () => {
     addPost(formData, () => {
       setTitle("");
       setImages([]);
-      contentRef.current.innerHTML = "";
+      if (contentRef.current) contentRef.current.innerHTML = "";
       setColor("#000000");
+      setIsImportant(false);
+      setIsResolutionProof(false);
+      setTargetUserEmail("");
     });
   };
 
@@ -73,18 +86,53 @@ const AddPost = () => {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-         {/* ✅ IMPORTANT ANNOUNCEMENT */}
-        <div className="flex items-center gap-3 mt-2">
-          <input
-            type="checkbox"
-            checked={isImportant}
-            onChange={(e) => setIsImportant(e.target.checked)}
-            className="w-5 h-5 accent-[#748dff] cursor-pointer"
-          />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Mark as <span className="text-red-500 font-semibold">Important Announcement</span>
-          </span>
+        {/* ✅ IMPORTANT ANNOUNCEMENT & RESOLUTION PROOF OPTIONS */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-3.5 bg-gray-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700">
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isImportant}
+              onChange={(e) => setIsImportant(e.target.checked)}
+              className="w-5 h-5 accent-[#748dff] cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Mark as <span className="text-red-500 font-semibold">Important Announcement</span>
+            </span>
+          </label>
+
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isResolutionProof}
+              onChange={(e) => setIsResolutionProof(e.target.checked)}
+              className="w-5 h-5 accent-emerald-500 cursor-pointer"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Mark as <span className="text-emerald-500 font-semibold">Resolution Proof</span>
+            </span>
+          </label>
         </div>
+
+        {/* 📧 CONCERNED USER EMAIL FIELD (If Resolution Proof selected) */}
+        {isResolutionProof && (
+          <div className="flex flex-col gap-1.5 p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl animate-fadeIn">
+            <label htmlFor="targetUserEmail" className="font-semibold text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+              <span>Concerned Resident's Email</span>
+              <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="targetUserEmail"
+              type="email"
+              placeholder="e.g. resident@example.com"
+              value={targetUserEmail}
+              onChange={(e) => setTargetUserEmail(e.target.value)}
+              className="p-3 text-sm rounded-md border border-emerald-300 dark:border-emerald-700 dark:bg-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <p className="text-[11px] sm:text-xs text-emerald-600 dark:text-emerald-400">
+              This proof post will be linked to this resident's complaint so they can verify the resolution.
+            </p>
+          </div>
+        )}
         
         {/* Title */}
         <div className="flex flex-col gap-1">

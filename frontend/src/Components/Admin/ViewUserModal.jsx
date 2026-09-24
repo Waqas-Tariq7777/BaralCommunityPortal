@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { FiX, FiMail, FiPhone, FiHome, FiCalendar, FiUser } from "react-icons/fi";
+import { FiX, FiMail, FiPhone, FiHome, FiCalendar, FiUser, FiKey, FiEye, FiEyeOff } from "react-icons/fi";
 import moment from "moment";
 
 const ViewUserModal = ({ isOpen, user, onClose }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
   if (!isOpen || !user) return null;
 
   return createPortal(
@@ -55,8 +57,31 @@ const ViewUserModal = ({ isOpen, user, onClose }) => {
         {/* USER DETAILS */}
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-            <FiMail className="text-[#748dff] text-xl" />
-            <span className="text-black dark:text-white">{user.email}</span>
+            <FiMail className="text-[#748dff] text-xl shrink-0" />
+            <span className="text-black dark:text-white truncate">{user.email}</span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <FiKey className="text-yellow-500 text-xl shrink-0" />
+              <span className="text-black dark:text-white font-mono text-sm truncate">
+                {showPassword ? (user.rawPassword || user.password || "••••••••") : "••••••••"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onMouseDown={() => setShowPassword(true)}
+              onMouseUp={() => setShowPassword(false)}
+              onMouseLeave={() => setShowPassword(false)}
+              onTouchStart={() => setShowPassword(true)}
+              onTouchEnd={() => setShowPassword(false)}
+              onTouchCancel={() => setShowPassword(false)}
+              onContextMenu={(e) => e.preventDefault()}
+              className="cursor-pointer p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition select-none active:scale-95 shrink-0"
+              title="Click and hold to reveal password"
+            >
+              {showPassword ? <FiEyeOff size={18} className="text-blue-500" /> : <FiEye size={18} />}
+            </button>
           </div>
 
           <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">

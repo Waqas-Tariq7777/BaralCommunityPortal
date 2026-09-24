@@ -10,7 +10,7 @@ import {
   AiOutlineDelete
 } from "react-icons/ai";
 import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiX, FiFilter, FiUser, FiLayers, FiPrinter, FiInbox } from "react-icons/fi";
+import { FiSearch, FiClock, FiX, FiFilter, FiUser, FiLayers, FiPrinter, FiInbox, FiStar } from "react-icons/fi";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -220,13 +220,12 @@ const ResolvedComplaints = () => {
       ) : (
         <>
           {view === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 min-w-0">
 
               {complaints.map((c) => (
                 <div
                   key={c._id}
-                  className="bg-gray-50 dark:bg-slate-900 dark:border dark:border-[#748dff] shadow-md rounded-lg p-6 flex flex-col transition-transform duration-300 hover:scale-[1.02]"
-
+                  className="bg-gray-50 dark:bg-slate-900 dark:border dark:border-[#748dff] shadow-md rounded-2xl p-4 sm:p-5 flex flex-col justify-between transition-transform duration-300 hover:scale-[1.01] min-w-0 overflow-hidden"
                 >
                   <div className="space-y-3 text-gray-700 dark:text-gray-200">
                     <p className="flex text-sm items-center gap-2">
@@ -252,6 +251,12 @@ const ResolvedComplaints = () => {
                         <FiClock className="text-[#065f46] text-lg" />
                         <span className="px-2 py-1 rounded-full bg-[#d1fae5] text-[#065f46] text-xs font-semibold">{capitalizeWords(c.status)}</span>
                       </div>
+                      {(c.resolutionVerified || c.resolutionRating) && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-bold border border-amber-300 dark:border-amber-800">
+                          <FiStar className="fill-amber-400 text-amber-400 text-xs shrink-0" />
+                          <span>Rating: {c.resolutionRating || 5}/5</span>
+                        </div>
+                      )}
                     </div>
 
                     <div>

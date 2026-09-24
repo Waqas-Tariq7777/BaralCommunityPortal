@@ -29,7 +29,6 @@ export default function Sidebar({ open, setOpen }) {
 
     const handleSignOut = () => {
         authStore.logoutUser();
-        setOpenDropdown(false);
     };
 
     useEffect(() => {

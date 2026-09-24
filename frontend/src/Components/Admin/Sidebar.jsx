@@ -32,6 +32,7 @@ export default function Sidebar({ open, setOpen }) {
     const [unreadComplaints, setUnreadComplaints] = useState(0);
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [unreadGuestMessages, setUnreadGuestMessages] = useState(0);
+    const [unreadVerifiedPosts, setUnreadVerifiedPosts] = useState(0);
 
     const fetchUnreadCounts = async () => {
         try {
@@ -53,6 +54,13 @@ export default function Sidebar({ open, setOpen }) {
             setUnreadGuestMessages(guestRes.data?.data || 0);
         } catch (err) {
             console.error("Failed to fetch unread guest messages:", err);
+        }
+
+        try {
+            const verifiedRes = await axios.get(`${baseUrl}/api/post/admin/unread-verified-count`, { withCredentials: true });
+            setUnreadVerifiedPosts(verifiedRes.data?.data || 0);
+        } catch (err) {
+            console.error("Failed to fetch unread verified count:", err);
         }
     };
 
@@ -78,13 +86,15 @@ export default function Sidebar({ open, setOpen }) {
         if (name === "Guest Inbox" && unreadGuestMessages > 0) {
             return `${unreadGuestMessages} new`;
         }
+        if (name === "View Posts" && unreadVerifiedPosts > 0) {
+            return `${unreadVerifiedPosts} Proofs Verified`;
+        }
         return null;
     };
 
     // Sign Out
     const handleSignOut = () => {
         authStore.logoutUser();
-        setOpenDropdown(false);
     };
 
     // Auto-close sidebar on small screens
@@ -207,7 +217,7 @@ export default function Sidebar({ open, setOpen }) {
                                                         <SubIcon size={16} />
                                                         <span className="flex-1">{sub.name}</span>
                                                         {subBadgeText && (
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 ${
                                                                 location.pathname === sub.path
                                                                     ? "bg-white text-red-500"
                                                                     : "bg-red-500 text-white"

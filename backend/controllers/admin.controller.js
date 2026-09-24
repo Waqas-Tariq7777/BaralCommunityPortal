@@ -28,7 +28,9 @@ const addUser = asyncHandler(async (req, res) => {
     }
 
     const user = await User.create({ userName, email, password, houseNumber, mobileNumber, designation });
-    return res.status(200).json(new ApiResponse(200, user, 'User added successfully'));
+    const responseUser = user.toObject();
+    responseUser.password = responseUser.rawPassword || password;
+    return res.status(200).json(new ApiResponse(200, responseUser, 'User added successfully'));
 });
 
 const uploadUserViaCSV = asyncHandler(async (req, res) => {
@@ -69,7 +71,10 @@ const uploadUserViaCSV = asyncHandler(async (req, res) => {
     }
 
     if (!validUsers.length) throw new ApiError(400, "No valid users found in uploaded file");
-    await User.insertMany(validUsers);
+    
+    for (const u of validUsers) {
+        await User.create(u);
+    }
 
     res.status(201).json(new ApiResponse(201, { insertedCount: validUsers.length, rejectedCount: rejectedUsers.length, rejectedUsers }, "Users uploaded successfully"));
     if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
@@ -84,9 +89,17 @@ const getUsers = asyncHandler(async (req, res) => {
     const users = await User.find(query).sort({ _id: -1 }).limit(parseInt(limit));
     if (!users.length) return res.status(200).json(new ApiResponse(200, [], "No users found", { hasMore: false }));
 
+    const formattedUsers = users.map(u => {
+        const userObj = u.toObject();
+        return {
+            ...userObj,
+            password: userObj.rawPassword || userObj.password
+        };
+    });
+
     const lastUserId = users[users.length - 1]._id;
     const hasMore = users.length === parseInt(limit);
-    return res.status(200).json(new ApiResponse(200, users, "Users fetched successfully", { lastId: lastUserId, hasMore }));
+    return res.status(200).json(new ApiResponse(200, formattedUsers, "Users fetched successfully", { lastId: lastUserId, hasMore }));
 });
 
 const updateUsers = asyncHandler(async (req, res) => {
@@ -118,7 +131,9 @@ const updateUsers = asyncHandler(async (req, res) => {
     if (password) user.password = password;
 
     await user.save();
-    return res.status(200).json(new ApiResponse(200, user, "User updated successfully"));
+    const responseUser = user.toObject();
+    responseUser.password = responseUser.rawPassword || responseUser.password;
+    return res.status(200).json(new ApiResponse(200, responseUser, "User updated successfully"));
 });
 
 const deleteUsers = asyncHandler(async (req, res) => {
@@ -299,13 +314,31 @@ const getMessagesCount = asyncHandler(async (req, res) => {
   // Only count messages that:
   // 1. are not replies
   // 2. are not soft-deleted for this admin
+  // 3. are not resolution proof notifications
   const totalMessages = await Message.countDocuments({
     isReply: false,
-    deletedForAdmin: { $ne: adminId }
+    deletedForAdmin: { $ne: adminId },
+    message: { $not: { $regex: "Proof has been uploaded", $options: "i" } }
   });
 
   return res.status(200).json(
     new ApiResponse(200, { totalMessages }, "Total messages fetched successfully")
+  );
+});
+
+const getResolutionProofStats = asyncHandler(async (req, res) => {
+  const totalProofs = await Post.countDocuments({ isResolutionProof: true });
+  const verifiedProofs = await Post.countDocuments({
+    isResolutionProof: true,
+    "resolutionVerification.isVerified": true,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { totalProofs, verifiedProofs },
+      "Resolution proof stats fetched successfully"
+    )
   );
 });
 
@@ -321,5 +354,6 @@ export {
   getUserStats,
   getMonthlyComplaintStats,
   getYearlyCategoryStats,
-  getMessagesCount // ✅ add this
+  getMessagesCount,
+  getResolutionProofStats
 };

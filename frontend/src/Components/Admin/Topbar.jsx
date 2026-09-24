@@ -1,17 +1,22 @@
+import React, { useState, useEffect } from "react";
 import { AiOutlineMenu, AiOutlineClose } from "react-icons/ai";
-import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import ThemeToggle from "../ThemeToggle.jsx";
 import { useThemeStore } from "../../Store/ThemeStore.js";
 import { useTranslation } from "react-i18next";
 import { useLanguageStore } from '../../Store/LanguageStore.js';
 import { useAuthStore } from "../../Store/AuthStore.js";
+import UserNotificationBell from "../User/UserNotificationBell.jsx";
 
 export default function Topbar({ open, setOpen, currentPage }) {
+  const location = useLocation();
   const [dateTime, setDateTime] = useState(new Date());
   const dark = useThemeStore((state) => state.dark);
   const { t } = useTranslation();
   const { language } = useLanguageStore();
   const { user } = useAuthStore();
+
+  const isUserDashboard = location.pathname === "/user/communityHub" || currentPage === "community_hub";
 
   const isRtl = language === "ur";
 
@@ -69,6 +74,14 @@ export default function Topbar({ open, setOpen, currentPage }) {
         <div className="flex items-center justify-center p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           <ThemeToggle size="sm" className="cursor-pointer text-slate-500 dark:text-slate-400 hover:text-[#748dff] dark:hover:text-[#748dff] transition-colors" />
         </div>
+
+        {/* 🔔 User Notification Bell (Only on User Dashboard) */}
+        {user && !user.isAdmin && isUserDashboard && (
+          <>
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800"></div>
+            <UserNotificationBell />
+          </>
+        )}
 
         {/* Divider */}
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-800"></div>

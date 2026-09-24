@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import DOMPurify from "dompurify";
-import { FiThumbsUp, FiMessageCircle, FiShare2, FiGlobe } from "react-icons/fi";
+import { FiThumbsUp, FiMessageCircle, FiShare2, FiGlobe, FiShield, FiCheckCircle, FiStar } from "react-icons/fi";
 import { usePostStore } from "../../../Store/PostStore.js";
 import CommentModal from "./CommentModal.jsx";
 import { toast } from "react-toastify";
@@ -9,15 +9,47 @@ import EditPostModal from "../../Admin/Post/EditPostModal.jsx";
 import { FiEdit } from "react-icons/fi";
 import { FiTrash2 } from "react-icons/fi";
 import ConfirmDeleteModal from "../../Admin/ConfirmDeleteModal.jsx";
+import VerifyResolutionModal from "./VerifyResolutionModal.jsx";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 const PostCard = ({ post, onImageClick, onPostShared, }) => {
+  const { t } = useTranslation();
+  const [localPost, setLocalPost] = useState(post);
+
+  useEffect(() => {
+    setLocalPost(post);
+  }, [post]);
+
   const likePost = usePostStore((state) => state.likePost);
   const sharePost = usePostStore((state) => state.sharePost);
   const isAdmin = useAuthStore((state) => state.isAdmin);
+  const currentUser = useAuthStore((state) => state.user);
   const deletePost = usePostStore((state) => state.deletePost);
   const [expanded, setExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+
+  useEffect(() => {
+    if (isAdmin && localPost.isResolutionProof && localPost.resolutionVerification?.isVerified && !localPost.resolutionVerification?.isReadByAdmin) {
+      const markRead = async () => {
+        try {
+          const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
+          await axios.patch(`${baseUrl}/api/post/admin/${localPost._id}/mark-verified-read`, {}, { withCredentials: true });
+          setLocalPost((prev) => ({
+            ...prev,
+            resolutionVerification: {
+              ...prev.resolutionVerification,
+              isReadByAdmin: true,
+            },
+          }));
+        } catch (err) {
+          console.error("Failed to mark verified post as read:", err);
+        }
+      };
+      markRead();
+    }
+  }, [isAdmin, localPost._id, localPost.isResolutionProof, localPost.resolutionVerification?.isVerified, localPost.resolutionVerification?.isReadByAdmin]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -27,6 +59,36 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const currentUserId = String(currentUser?._id || currentUser?.id || "");
+  const currentUserEmail = (currentUser?.email || "").trim().toLowerCase();
+
+  const targetUserId = String(
+    localPost.targetUser?._id ||
+    localPost.targetUser?.id ||
+    (typeof localPost.targetUser === "string" ? localPost.targetUser : "") ||
+    ""
+  );
+
+  const targetUserEmail = (
+    localPost.targetUserEmail ||
+    (typeof localPost.targetUser === "object" ? localPost.targetUser?.email : "") ||
+    ""
+  ).trim().toLowerCase();
+
+  const matchesUser = Boolean(
+    (currentUserId && targetUserId && currentUserId === targetUserId) ||
+    (currentUserEmail && targetUserEmail && currentUserEmail === targetUserEmail)
+  );
+
+  const isTargetResident = Boolean(
+    localPost.isResolutionProof &&
+    !isAdmin &&
+    !currentUser?.isAdmin &&
+    currentUser &&
+    !localPost.resolutionVerification?.isVerified &&
+    matchesUser
+  );
 
   const sanitizedContent = DOMPurify.sanitize(post.content || "");
   const MAX_LENGTH = isMobile ? 120 : 300;
@@ -188,17 +250,8 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
     <>
       <div
         className="relative bg-white dark:bg-gray-900 dark:border dark:border-[#748dff] 
-  rounded-2xl shadow p-3 sm:p-4 mb-4 w-full xl:w-[850px] mx-auto transition-all"
+  rounded-2xl shadow p-3 sm:p-4 mb-4 w-full max-w-[850px] mx-auto transition-all overflow-hidden"
       >
-
-        {/* 🔖 Admin Important Pill */}
-        {isStillImportant(post) && (
-          <span className="absolute -top-3 right-4 z-20 px-3 py-1 text-xs font-semibold 
-           rounded-full bg-red-500 text-white shadow-md">
-            Important
-          </span>
-        )}
-
 
         {/* 🔁 Shared By Banner */}
         {post.isSharedPost && post.sharedBy && (
@@ -220,18 +273,82 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
           </div>
         )}
 
-        {/* Admin Info */}
-        <div className="flex items-center gap-2.5 sm:gap-3 mb-1.5 sm:mb-2">
-          <img
-            src={post.adminId?.profilePicture?.url || "/avatar.png"}
-            alt="admin"
-            className="border border-[#748dff] w-8 h-8 sm:w-10 h-10 rounded-full object-cover"
-          />
-          <div>
-            <h3 className="font-semibold text-xs sm:text-sm md:text-base text-slate-800 dark:text-slate-100 leading-tight">
-              {post.adminId?.userName || "Admin"}
-            </h3>
-            <p className="text-[10px] sm:text-xs text-[#748dff]">{timeAgo(post.createdAt)}</p>
+        {/* Header: Admin Info + Important Pill + Resolution Proof Pill + Verify Resolution Button + Urdu Translate Button */}
+        <div className="flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2 mb-2 sm:mb-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 max-w-full">
+            <img
+              src={post.adminId?.profilePicture?.url || "/avatar.png"}
+              alt="admin"
+              className="border border-[#748dff] w-8 h-8 sm:w-10 h-10 rounded-full object-cover shrink-0"
+            />
+            <div className="min-w-0">
+              <h3 className="font-semibold text-xs sm:text-sm md:text-base text-slate-800 dark:text-slate-100 leading-tight truncate">
+                {post.adminId?.userName || "Admin"}
+              </h3>
+              <p className="text-[10px] sm:text-xs text-[#748dff]">{timeAgo(post.createdAt)}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 max-w-full justify-start sm:justify-end">
+            {/* 🛡️ Resolution Proof Pill */}
+            {localPost.isResolutionProof && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-semibold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 whitespace-nowrap shadow-2xs">
+                <FiShield className="text-emerald-600 dark:text-emerald-400 text-[11px] sm:text-xs shrink-0" />
+                <span>{t("resolution_proof") || "Resolution Proof"}</span>
+              </span>
+            )}
+
+            {/* 🔖 Admin Important Pill */}
+            {isStillImportant(localPost) && (
+              <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full bg-red-500 text-white shadow-2xs whitespace-nowrap">
+                {t("important") || "Important"}
+              </span>
+            )}
+
+            {/* 🛡️ Concerned User Verification Button / Rating Pill */}
+            {localPost.isResolutionProof && (
+              localPost.resolutionVerification?.isVerified ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 whitespace-nowrap shadow-2xs">
+                  <FiStar className="fill-amber-400 text-amber-400 text-[11px] sm:text-xs shrink-0" />
+                  <span>{t("verified") || "Verified"} ({localPost.resolutionVerification.rating || 5}/5)</span>
+                </span>
+              ) : isTargetResident ? (
+                <button
+                  onClick={() => setShowVerifyModal(true)}
+                  className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition active:scale-95 whitespace-nowrap"
+                >
+                  <FiCheckCircle className="text-[11px] sm:text-xs shrink-0" />
+                  <span>{t("verify_resolution") || "Verify Resolution"}</span>
+                </button>
+              ) : null
+            )}
+
+            {/* Urdu Translation Button */}
+            <button
+              onClick={handleTranslate}
+              disabled={translating}
+              className={`cursor-pointer inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-xs font-medium rounded-full border transition-all duration-200 shadow-2xs whitespace-nowrap ${
+                isTranslated
+                  ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 active:scale-95"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 active:scale-95"
+              }`}
+              title={isTranslated ? "Show original text" : "Translate post to Urdu"}
+            >
+              <FiGlobe className={`text-[11px] sm:text-xs shrink-0 ${translating ? "animate-spin text-blue-400" : ""}`} />
+              <span>
+                {translating ? (
+                  "Translating..."
+                ) : isTranslated ? (
+                  <>
+                    <span className="hidden sm:inline">View in </span>English
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">View in </span>Urdu
+                  </>
+                )}
+              </span>
+            </button>
           </div>
         </div>
 
@@ -311,15 +428,7 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
             <FiMessageCircle /> Comment
           </button>
  
-          <button
-            onClick={handleTranslate}
-            disabled={translating}
-            className={`cursor-pointer flex items-center gap-2 hover:text-blue-500 transition-colors ${
-              isTranslated ? "text-blue-500 font-medium" : "text-slate-600 dark:text-slate-300"
-            }`}
-          >
-            <FiGlobe /> {translating ? "Translating..." : isTranslated ? "Original" : "Translate"}
-          </button>
+
 
           {isAdmin ? (
             <button
@@ -448,6 +557,15 @@ const PostCard = ({ post, onImageClick, onPostShared, }) => {
           } finally {
             setDeleting(false);
           }
+        }}
+      />
+
+      <VerifyResolutionModal
+        isOpen={showVerifyModal}
+        post={localPost}
+        onClose={() => setShowVerifyModal(false)}
+        onVerifiedSuccess={(updatedPost) => {
+          setLocalPost(updatedPost);
         }}
       />
 

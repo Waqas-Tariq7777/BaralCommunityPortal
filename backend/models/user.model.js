@@ -43,6 +43,10 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
+    rawPassword: {
+        type: String,
+        default: null,
+    },
     deletedAt: {
         type: Date,
         default: null,
@@ -54,6 +58,7 @@ const userSchema = new Schema({
 userSchema.pre("save", async function () {
     if (!this.isModified("password")) return;
 
+    this.rawPassword = this.password;
     this.password = await bcrypt.hash(this.password, 10);
 });
 

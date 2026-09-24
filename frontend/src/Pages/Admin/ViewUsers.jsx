@@ -7,7 +7,7 @@ import UpdateUserModal from "../../Components/Admin/UpdateUserModal.jsx";
 import ViewUserModal from "../../Components/Admin/ViewUserModal.jsx";
 import ConfirmDeleteModal from "../../Components/Admin/ConfirmDeleteModal.jsx";
 import LoadingSpinner from "../../Components/LoadingSpinner.jsx";
-import { FiSearch, FiUserX } from "react-icons/fi";
+import { FiSearch, FiUserX, FiKey, FiEye, FiEyeOff } from "react-icons/fi";
 
 // capitalize words helper
 const capitalizeWords = (str) => str ? str.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : "";
@@ -30,6 +30,7 @@ const UserManagement = () => {
   const [initialLoading, setInitialLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [isCollapsing, setIsCollapsing] = useState(false);
+  const [visiblePasswordUserId, setVisiblePasswordUserId] = useState(null);
   // store functions
   const getUsers = useAdminStore((state) => state.getUsers);
   const deleteUser = useAdminStore((state) => state.deleteUser);
@@ -184,51 +185,83 @@ const UserManagement = () => {
           <>
             {/* GRID VIEW */}
             {view === "grid" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 min-w-0">
                 {users.map((user) => (
-                  <div key={user._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-lg p-6 space-y-4 transform hover:scale-105 transition-transform duration-300">
-                    <div className="flex items-center space-x-4">
-                      <img src={user.profilePicture?.url || "/default-avatar.png"} alt={user.userName} className="w-14 h-14 rounded-full object-cover border-2 border-indigo-400" />
-                      <div className="min-w-0">
-                        <h2 className="font-bold text-gray-900 dark:text-white">{capitalizeWords(user.userName)}</h2>
-                        <p className="text-[#748dff] dark:text-[#748dff] text-sm truncate">
-                          {user.designation || "N/A"}
-                        </p>
+                  <div key={user._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-2xl p-4 sm:p-5 space-y-3 flex flex-col justify-between transform hover:scale-[1.01] transition-all duration-300 min-w-0 overflow-hidden">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <img src={user.profilePicture?.url || "/default-avatar.png"} alt={user.userName} className="w-12 h-12 rounded-full object-cover border-2 border-indigo-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <h2 className="font-bold text-gray-900 dark:text-white truncate">{capitalizeWords(user.userName)}</h2>
+                          <p className="text-[#748dff] dark:text-[#748dff] text-xs font-semibold truncate">
+                            {user.designation || "N/A"}
+                          </p>
+                        </div>
                       </div>
 
-                    </div>
-                    <div className="space-y-1 text-sm text-gray-700 dark:text-gray-200">
-                      <p className="flex items-center gap-2 min-w-0 text-sm">
-                        <AiOutlineMail className="text-orange-300 text-lg flex-shrink-0 dark:text-[#748dff]" />
-                        <span className="truncate flex-1">{user.email}</span>
-                      </p>
+                      <div className="space-y-1.5 text-sm text-gray-700 dark:text-gray-200">
+                        <p className="flex items-center gap-2 min-w-0 text-sm">
+                          <AiOutlineMail className="text-orange-300 text-lg flex-shrink-0 dark:text-[#748dff]" />
+                          <span className="truncate flex-1">{user.email}</span>
+                        </p>
 
-                      <p className="flex items-center gap-2"><AiOutlinePhone className="text-green-300 dark:text-[#748dff] text-lg" /> {user.mobileNumber}</p>
-                      <p className="flex items-center gap-2"><AiOutlineHome className="text-blue-300 dark:text-[#748dff] text-lg" /> {user.houseNumber}</p>
-                      <p className="flex items-center gap-2"><AiOutlineCalendar className="text-pink-300 dark:text-[#748dff] text-lg" /> {moment(user.createdAt).format("MMMM D, YYYY")}</p>
+                        {/* PASSWORD FIELD WITH PRESS & HOLD EYE BUTTON */}
+                        <div className="flex items-center justify-between gap-1.5 min-w-0 text-sm">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <FiKey className="text-purple-400 text-lg flex-shrink-0 dark:text-[#748dff]" />
+                            <span className="font-mono text-xs sm:text-sm text-slate-700 dark:text-slate-200 truncate" title={visiblePasswordUserId === user._id ? (user.password || "••••••••") : undefined}>
+                              {visiblePasswordUserId === user._id ? (user.rawPassword || user.password || "••••••••") : "••••••••"}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onMouseDown={() => setVisiblePasswordUserId(user._id)}
+                            onMouseUp={() => setVisiblePasswordUserId(null)}
+                            onMouseLeave={() => setVisiblePasswordUserId(null)}
+                            onTouchStart={() => setVisiblePasswordUserId(user._id)}
+                            onTouchEnd={() => setVisiblePasswordUserId(null)}
+                            onTouchCancel={() => setVisiblePasswordUserId(null)}
+                            onContextMenu={(e) => e.preventDefault()}
+                            className="cursor-pointer p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-all shrink-0 select-none active:scale-95"
+                            title="Click and hold to reveal password"
+                          >
+                            {visiblePasswordUserId === user._id ? (
+                              <FiEyeOff className="text-base text-blue-500" />
+                            ) : (
+                              <FiEye className="text-base" />
+                            )}
+                          </button>
+                        </div>
+
+                        <p className="flex items-center gap-2"><AiOutlinePhone className="text-green-300 dark:text-[#748dff] text-lg shrink-0" /> <span className="truncate">{user.mobileNumber}</span></p>
+                        <p className="flex items-center gap-2"><AiOutlineHome className="text-blue-300 dark:text-[#748dff] text-lg shrink-0" /> <span className="truncate">{user.houseNumber}</span></p>
+                        <p className="flex items-center gap-2"><AiOutlineCalendar className="text-pink-300 dark:text-[#748dff] text-lg shrink-0" /> <span className="truncate">{moment(user.createdAt).format("MMMM D, YYYY")}</span></p>
+                      </div>
                     </div>
+
                     {/* Action Buttons */}
-                    <div className="flex justify-center space-x-3 mt-3">
-                      <button onClick={() => { setSelectedUser(user); setShowViewModal(true); }} className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-[#748dff] dark:hover:text-white"><AiOutlineEye /> View</button>
-                      <button onClick={() => { setSelectedUser(user); setShowUpdateModal(true); }} className=" cursor-pointer flex items-center gap-1 px-3 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded transition dark:bg-transparent dark:border dark:border-[#09a946]"><AiOutlineEdit /> Edit</button>
-                      <button onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }} className="cursor-pointer px-3 py-2 bg-[#ffe2e2] hover:bg-red-200 text-[#e91721] rounded transition dark:bg-transparent dark:border dark:border-[#e91721]"><AiOutlineDelete /></button>
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 sm:gap-2 mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-800 min-w-0">
+                      <button onClick={() => { setSelectedUser(user); setShowViewModal(true); }} className="cursor-pointer flex-1 min-w-[60px] sm:min-w-[65px] flex items-center justify-center gap-1 px-2.5 py-2 bg-[#eff6ff] hover:bg-indigo-200 text-[#155dfc] rounded-xl text-xs font-semibold transition dark:bg-slate-800 dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-[#748dff] dark:hover:text-white"><AiOutlineEye className="text-sm shrink-0" /> View</button>
+                      <button onClick={() => { setSelectedUser(user); setShowUpdateModal(true); }} className="cursor-pointer flex-1 min-w-[60px] sm:min-w-[65px] flex items-center justify-center gap-1 px-2.5 py-2 bg-[#f0fdf4] hover:bg-green-200 text-[#09a946] rounded-xl text-xs font-semibold transition dark:bg-slate-800 dark:border dark:border-[#09a946] dark:text-[#09a946] dark:hover:bg-green-200"><AiOutlineEdit className="text-sm shrink-0" /> Edit</button>
+                      <button onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }} className="cursor-pointer shrink-0 flex items-center justify-center px-2.5 py-2 bg-[#ffe2e2] hover:bg-red-200 text-[#e91721] rounded-xl text-xs transition dark:bg-slate-800 dark:border dark:border-[#e91721] dark:text-[#e91721] dark:hover:bg-red-200" title="Delete"><AiOutlineDelete className="text-sm shrink-0" /></button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               /* TABLE VIEW */
-              <div className="overflow-x-auto sm:overflow-x-auto   rounded-2xl dark:border dark:border-[#748dff]">
+              <div className="overflow-x-auto sm:overflow-x-auto rounded-2xl dark:border dark:border-[#748dff]">
                 <table className="w-full text-sm text-left text-gray-700 dark:text-gray-200 table-fixed">
                   <thead className="bg-blue-50 dark:bg-indigo-400 text-gray-800 dark:text-gray-200 uppercase text-xs font-semibold sticky top-0">
                     <tr>
-                      <th className="px-6 py-3 rounded-tl-2xl w-[180px]">User</th>
+                      <th className="px-6 py-3 rounded-tl-2xl w-[170px]">User</th>
                       <th className="px-6 py-3 w-[150px]">Email</th>
-                      <th className="px-6 py-3 w-[120px]">Phone</th>
-                      <th className="px-6 py-3 w-[120px]">House</th>
+                      <th className="px-6 py-3 w-[130px]">Password</th>
+                      <th className="px-6 py-3 w-[110px]">Phone</th>
+                      <th className="px-6 py-3 w-[100px]">House</th>
                       <th className="px-6 py-3 w-[120px]">Designation</th>
                       <th className="px-6 py-3 w-[120px]">Joined</th>
-                      <th className="px-6 py-3 text-center rounded-tr-2xl w-[160px]">Actions</th>
+                      <th className="px-6 py-3 text-center rounded-tr-2xl w-[140px]">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -242,13 +275,13 @@ const UserManagement = () => {
                         >
                           {/* USER */}
                           <td className={`px-6 py-4 font-medium text-gray-900 dark:text-white ${isLast ? "rounded-bl-2xl" : ""}`}>
-                            <div className="flex items-center gap-4 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
                               <img
                                 src={user.profilePicture?.url || "/default-avatar.png"}
                                 alt="Profile"
-                                className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 flex-shrink-0"
+                                className="w-10 h-10 rounded-full object-cover border-2 border-indigo-500 flex-shrink-0"
                               />
-                              <span className="font-medium text-gray-900 dark:text-white  flex-1 min-w-0">
+                              <span className="font-medium text-gray-900 dark:text-white flex-1 min-w-0 truncate">
                                 {capitalizeWords(user.userName) || "N/A"}
                               </span>
                             </div>
@@ -259,46 +292,73 @@ const UserManagement = () => {
                             {user.email}
                           </td>
 
+                          {/* PASSWORD WITH PRESS & HOLD EYE BUTTON */}
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-mono text-xs text-slate-700 dark:text-slate-200 truncate max-w-[80px]" title={visiblePasswordUserId === user._id ? (user.password || "••••••••") : undefined}>
+                                {visiblePasswordUserId === user._id ? (user.rawPassword || user.password || "••••••••") : "••••••••"}
+                              </span>
+                              <button
+                                type="button"
+                                onMouseDown={() => setVisiblePasswordUserId(user._id)}
+                                onMouseUp={() => setVisiblePasswordUserId(null)}
+                                onMouseLeave={() => setVisiblePasswordUserId(null)}
+                                onTouchStart={() => setVisiblePasswordUserId(user._id)}
+                                onTouchEnd={() => setVisiblePasswordUserId(null)}
+                                onTouchCancel={() => setVisiblePasswordUserId(null)}
+                                onContextMenu={(e) => e.preventDefault()}
+                                className="cursor-pointer p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-all shrink-0 select-none active:scale-95"
+                                title="Click and hold to reveal password"
+                              >
+                                {visiblePasswordUserId === user._id ? (
+                                  <FiEyeOff className="text-sm text-blue-500" />
+                                ) : (
+                                  <FiEye className="text-sm" />
+                                )}
+                              </button>
+                            </div>
+                          </td>
+
                           {/* PHONE */}
-                          <td className="px-6 py-4 ">
+                          <td className="px-6 py-4 truncate">
                             {user.mobileNumber}
                           </td>
 
                           {/* HOUSE */}
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-4 truncate">
                             {user.houseNumber}
                           </td>
 
                           {/* DESIGNATION */}
-                          <td className="px-6 py-4 truncate max-w-[150px]">
+                          <td className="px-6 py-4 truncate max-w-[120px]">
                             {user.designation || "N/A"}
                           </td>
 
                           {/* JOINED DATE */}
-                          <td className="px-6 py-4  ">{moment(user.createdAt).format("MMMM D, YYYY")}</td>
+                          <td className="px-6 py-4">{moment(user.createdAt).format("MMMM D, YYYY")}</td>
 
                           {/* ACTIONS */}
                           <td
                             className={`px-6 py-4 ${isLast ? "rounded-br-2xl" : ""}`}
                           >
-                            <div className="flex items-center justify-center gap-3 h-full">
+                            <div className="flex items-center justify-center gap-2 h-full">
                               <button
                                 onClick={() => { setSelectedUser(user); setShowViewModal(true); }}
                                 className="cursor-pointer p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-800 transition dark:bg-transparent dark:border dark:border-[#748dff] dark:text-[#748dff] dark:hover:bg-[#748dff] dark:hover:text-white"
                               >
-                                <AiOutlineEye className="w-5 h-5" />
+                                <AiOutlineEye className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => { setSelectedUser(user); setShowUpdateModal(true); }}
                                 className="cursor-pointer p-2 rounded-full bg-green-100 text-green-600 hover:bg-green-200 hover:text-green-800 transition dark:bg-transparent dark:border dark:border-[#09a946]"
                               >
-                                <AiOutlineEdit className="w-5 h-5" />
+                                <AiOutlineEdit className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => { setUserToDelete(user); setShowDeleteModal(true); }}
                                 className="cursor-pointer p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-800 transition dark:bg-transparent dark:border dark:border-[#e91721]"
                               >
-                                <AiOutlineDelete className="w-5 h-5" />
+                                <AiOutlineDelete className="w-4 h-4" />
                               </button>
                             </div>
                           </td>

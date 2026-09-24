@@ -11,7 +11,8 @@ import {
     FiCheckCircle,
     FiCalendar,
     FiEdit,
-    FiPrinter
+    FiPrinter,
+    FiStar
 } from "react-icons/fi";
 import moment from "moment";
 import { useComplaintStore } from "../../Store/ComplaintStore";
@@ -168,6 +169,25 @@ bg-[#748dff] text-white drop-shadow-2xl rounded-md hover:bg-indigo-500"
                             {complaint.message || "—"}
                         </p>
                     </div>
+
+                    {/* RESIDENT RESOLUTION VERIFICATION & RATING BOX */}
+                    {(localComplaint.resolutionVerified || localComplaint.resolutionRating) && (
+                        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 p-4 rounded-xl shadow-sm space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                                <span className="font-bold text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                                    <FiStar className="fill-amber-400 text-amber-400 text-base" /> Resident Verification & Rating
+                                </span>
+                                <span className="text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-2.5 py-0.5 rounded-full">
+                                    ★ {localComplaint.resolutionRating || 5} / 5
+                                </span>
+                            </div>
+                            {localComplaint.resolutionFeedback && (
+                                <p className="text-xs text-amber-900 dark:text-amber-200 italic">
+                                    "{localComplaint.resolutionFeedback}"
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* RESOURCES & COST */}

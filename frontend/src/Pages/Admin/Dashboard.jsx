@@ -8,6 +8,7 @@ import { useGuestStore } from "../../Store/GuestStore";
 import UserStatsChart from "../../Components/Admin/UserStatsChart";
 import ResolvedComplaintsChart from "../../Components/Admin/ResolvedComplaintChart";
 import CategoryComplaintChart from "../../Components/Admin/CategoryChart";
+import { FiShield } from "react-icons/fi";
 
 import {
   AiOutlineUser,
@@ -20,7 +21,7 @@ import {
 export default function Dashboard() {
   // ================= Users =================
   const [totalUsers, setTotalUsers] = useState(0);
-  const { getUsersCount, getAnnouncementsCount, getComplaintStats, getMessagesCount } =
+  const { getUsersCount, getAnnouncementsCount, getComplaintStats, getMessagesCount, getResolutionProofStats } =
     useAdminStore();
 
   useEffect(() => {
@@ -66,6 +67,23 @@ export default function Dashboard() {
     fetchComplaintStats();
   }, []);
 
+  // ================= Resolution Proof Stats =================
+  const [proofStats, setProofStats] = useState({ totalProofs: 0, verifiedProofs: 0 });
+
+  useEffect(() => {
+    const fetchProofStats = async () => {
+      try {
+        const stats = await getResolutionProofStats();
+        setProofStats(stats || { totalProofs: 0, verifiedProofs: 0 });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchProofStats();
+    const interval = setInterval(fetchProofStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   // ================= Messages =================
   const [totalMessages, setTotalMessages] = useState(0);
   const { unreadCount, fetchUnreadCount } = useMessageStore();
@@ -98,7 +116,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5 items-stretch">
         <StatCard
           title="Total Users"
           value={totalUsers}
@@ -128,8 +146,22 @@ export default function Dashboard() {
           className="dark:bg-slate-800 dark:text-white"
         />
 
+        {/* 🛡️ Resolution Proofs Card */}
+        <div className="relative h-full w-full">
+          <StatCard
+            title="Resolution Proofs"
+            value={proofStats.totalProofs}
+            icon={<FiShield className="dark:text-white text-xl" />}
+            color="from-emerald-500 to-teal-400"
+            className="dark:bg-slate-800 dark:text-white"
+          />
+          <span className="absolute top-2 right-2 bg-emerald-700/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+            {proofStats.verifiedProofs} Verified
+          </span>
+        </div>
+
         {/* Messages + Combined Unread */}
-        <div className="relative">
+        <div className="relative h-full w-full">
           <StatCard
             title="Messages"
             value={totalMessages}

@@ -137,7 +137,11 @@ const getAdminMessages = asyncHandler(async (req, res) => {
 
   const { search, date } = req.query;
 
-  let query = { deletedAt: null, deletedForAdmin: { $ne: adminId } };
+  let query = { 
+    deletedAt: null, 
+    deletedForAdmin: { $ne: adminId },
+    message: { $not: { $regex: "Proof has been uploaded", $options: "i" } } 
+  };
 
   if (search && search.trim() !== "") {
     const users = await User.find({
@@ -206,6 +210,7 @@ const getUnreadCount = asyncHandler(async (req, res) => {
     deletedAt: null,
     deletedForAdmin: { $ne: adminId },
     read: false,
+    message: { $not: { $regex: "Proof has been uploaded", $options: "i" } },
     // Check that no reply exists from this admin
     _id: { 
       $nin: await Message.find({
@@ -350,6 +355,38 @@ const softDeleteMessage = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, null, "Message soft-deleted for admin"));
 });
 
+// Get user notifications (Messages sent to logged-in user)
+const getUserNotifications = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const userEmail = req.user.email;
+
+  const notifications = await Message.find({
+    sender: { $ne: userId },
+    $or: [{ recipient: userId }, { email: userEmail }],
+    deletedAt: null,
+  })
+    .sort({ createdAt: -1 })
+    .populate("sender", "userName profilePicture");
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  return res.status(200).json(
+    new ApiResponse(200, { notifications, unreadCount }, "User notifications fetched successfully")
+  );
+});
+
+// Mark user notification as read
+const markUserNotificationAsRead = asyncHandler(async (req, res) => {
+  const { messageId } = req.params;
+  const notification = await Message.findById(messageId);
+  if (!notification) throw new ApiError(404, "Notification not found");
+
+  notification.read = true;
+  await notification.save();
+
+  return res.status(200).json(new ApiResponse(200, notification, "Notification marked as read"));
+});
+
 export { 
   sendMessage,
   getInbox,
@@ -361,5 +398,7 @@ export {
   replyToMessage,
   editReply,
   deleteReply,
-  softDeleteMessage // <-- export new function
+  softDeleteMessage,
+  getUserNotifications,
+  markUserNotificationAsRead
 };

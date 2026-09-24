@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { AiOutlineAppstore, AiOutlineUnorderedList, AiOutlineMail, AiOutlinePhone, AiOutlineCalendar, AiOutlineEye } from "react-icons/ai";
 import { RiFolderSettingsLine } from "react-icons/ri";
-import { FiSearch, FiClock, FiFilter, FiUser, FiLayers, FiInbox } from "react-icons/fi";
+import { FiSearch, FiClock, FiFilter, FiUser, FiLayers, FiInbox, FiInfo } from "react-icons/fi";
 import { useComplaintStore } from "../../Store/ComplaintStore.js";
 import moment from "moment";
 import { debounce } from "lodash";
@@ -210,9 +210,9 @@ const ComplaintManagement = () => {
       ) :
         <>
           {view === "grid" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 min-w-0">
               {complaints.map(c => (
-                <div key={c._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-lg p-6 space-y-3 transform hover:scale-105 transition-transform duration-300">
+                <div key={c._id} className="bg-gray-50 dark:bg-gray-900 dark:border dark:border-[#748dff] shadow-md rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-3 transform hover:scale-[1.01] transition-all duration-300 min-w-0 overflow-hidden">
                   <div className="space-y-3 text-gray-700 dark:text-gray-200">
                     <p className="flex text-sm items-center gap-2"><FiUser className="text-indigo-300 text-lg dark:text-[#748dff]" /> {c.userId?.userName}</p>
                     <p className="flex items-center gap-2 min-w-0 text-sm">
@@ -227,7 +227,7 @@ const ComplaintManagement = () => {
                       <div className="flex items-center gap-2"><FiClock className="text-lg text-[#894b00]" /><span className={`px-2 py-1 rounded-full text-xs font-semibold ${c.status.toLowerCase() === "pending" ? "bg-[#fef9c2] text-[#894b00]" : c.status.toLowerCase() === "in progress" ? "bg-[#eff6ff]  text-[#155dfc]" : c.status.toLowerCase() === "resolved" ? "bg-[#d1fae5] text-[#065f46]" : "bg-[#fee2e2] text-[#991b1b]"}`}>{capitalizeWords(c.status)}</span></div>
                     </div>
 
-                    <div><p className="flex items-center gap-2 mt-6 text-sm "> Reason:</p><p className="flex items-center gap-2 mb-6 text-sm font-medium ">{c.reason}</p></div>
+                    <div><p className="flex items-center gap-2 mt-4 text-sm "> Reason:</p><p className="flex items-center gap-2 mb-4 text-sm font-medium ">{c.reason}</p></div>
                   </div>
 
                   <div className="flex justify-center mt-2 relative">
